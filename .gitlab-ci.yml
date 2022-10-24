@@ -1,0 +1,70 @@
+stages:
+  - checks
+  - test
+  - deploy
+
+before_script:
+  - apt-get update
+  - apt-get install redis-server -y
+  - redis-server --daemonize yes
+  - python -V
+  - pip install tox
+
+pre-commit:
+  stage: checks
+  image: python:3.9-buster
+  variables:
+    PRE_COMMIT_HOME: ${CI_PROJECT_DIR}/.cache/pre-commit
+  cache:
+    paths:
+      - ${PRE_COMMIT_HOME}
+  script:
+    - pip install pre-commit
+    - pre-commit run --all-files
+
+.test-py37:
+  needs: []
+  stage: test
+  image: python:3.7-buster
+
+.test-py38:
+  needs: []
+  stage: test
+  image: python:3.8-buster
+
+.test-py39:
+  needs: []
+  stage: test
+  image: python:3.9-buster
+
+test-37-django32:
+  extends: .test-py37
+  script:
+    - tox -e py37-django32
+    - bash <(curl -s https://codecov.io/bash)
+
+test-38-django32:
+  extends: .test-py38
+  script:
+    - tox -e py38-django32
+    - bash <(curl -s https://codecov.io/bash)
+
+test-39-django32:
+  extends: .test-py39
+  script:
+    - tox -e py39-django32
+    - bash <(curl -s https://codecov.io/bash)
+
+deploy-pypi:
+  stage: deploy
+  image: python:3.9-buster
+
+  before_script:
+    - pip install twine
+
+  script:
+    - python setup.py sdist bdist_wheel
+    - twine upload dist/*
+
+  only:
+    - tags
