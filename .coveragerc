@@ -1,6 +1,6 @@
 [run]
 branch = True
-source = example
+source = miningtaxes
 
 [report]
 exclude_lines =

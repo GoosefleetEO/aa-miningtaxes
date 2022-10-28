@@ -1,0 +1,67 @@
+/* Common styles for all pages of this app */
+@media all {
+    .icon-plus-name {
+        padding-left: 2em;
+        text-indent: -2em;
+    }
+
+    .text-high-sec {
+        color: rgb(0, 128, 0);
+    }
+
+    .text-low-sec {
+        color: rgb(255, 165, 0);
+    }
+
+    .text-null-sec {
+        color: rgb(255, 0, 0);
+    }
+
+    .boolean-icon-false{
+        color: rgb(255, 0, 0);
+    }
+
+    .boolean-icon-true {
+        color: rgb(0, 128, 0);
+    }
+
+    /* fix to remove vertical slider when in response mode */
+    .table-width-fix {
+        width: 100% !important;
+    }
+}
+
+/* Skill Details Modal
+------------------------------------------------------------------------------------- */
+@media all {
+    .aa-memberaudit .skillset-description {
+        margin-bottom: 2rem;
+    }
+}
+
+/* DataTables
+------------------------------------------------------------------------------------- */
+@media all {
+    .dataTables_wrapper > .form-inline {
+        margin-bottom: 1rem;
+    }
+
+    .dataTables_wrapper > .form-inline select {
+        margin-right: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .dataTables_wrapper > .form-inline select:last-child {
+        margin-right: 0;
+    }
+
+    .dataTables_length select {
+        margin: 0 1rem;
+    }
+}
+
+@media (min-width: 768px) {
+    .dataTables_wrapper > .form-inline select:first-child {
+        margin-left: 1rem;
+    }
+}

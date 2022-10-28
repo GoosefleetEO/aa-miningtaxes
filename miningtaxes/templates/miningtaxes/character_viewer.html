@@ -1,0 +1,75 @@
+{% extends 'miningtaxes/base.html' %}
+{% load i18n %}
+{% load static %}
+{% load humanize %}
+{% load evelinks %}
+
+{% block details %}
+
+    <div class="table-responsive">
+        <table class="table table-striped table-width-fix" id="tab_mining_ledger">
+            <thead>
+                <tr>
+                    <th>{% translate 'Date' %}</th>
+                    <th>{% translate 'Type' %}</th>
+                    <th>{% translate 'Quantity' %}</th>
+                    <th>{% translate 'Price' %}</th>
+                    <th>{% translate 'Price' %}</th>
+                    <th>{% translate 'Price' %}</th>
+                    <th>{% translate 'Price' %}</th>
+                    <th>{% translate 'Solar System' %}</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+{% endblock details %}
+
+{% block extra_javascript %}
+{% include 'bundles/datatables-js.html' %}
+{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'miningtaxes/css/global.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'miningtaxes/css/miningtaxes.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'miningtaxes/css/launcher.css' %}" type="text/css">
+{% endblock %}
+
+{% block extra_script %}
+$(document).ready(function () {
+        $('#tab_mining_ledger').DataTable({
+            ajax: {
+                url: "{% url 'miningtaxes:character_mining_ledger_data' character.pk %}",
+                dataSrc: 'data',
+                cache: false
+            },
+            columns: [
+                { data: 'date' },
+                { data: 'type' },
+                {
+                    data: 'quantity',
+                    render: $.fn.dataTable.render.number(',', '.', 0)
+                },
+                {
+                    data: 'raw price',
+                    render: $.fn.dataTable.render.number(',', '.', 2)
+                },
+                {
+                    data: 'refined price',
+                    render: $.fn.dataTable.render.number(',', '.', 2)
+                },
+                {
+                    data: 'taxed value',
+                    render: $.fn.dataTable.render.number(',', '.', 2)
+                },
+                {
+                    data: 'taxes owed',
+                    render: $.fn.dataTable.render.number(',', '.', 2)
+                },
+                { data: 'solar_system' },
+            ],
+            order: [[0, "desc"], [1, "asc"] , [4, "asc"]],
+        });
+});
+{% endblock %}

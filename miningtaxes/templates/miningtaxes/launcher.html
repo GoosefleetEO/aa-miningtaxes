@@ -1,0 +1,122 @@
+{% extends 'miningtaxes/base.html' %}
+{% load i18n %}
+{% load static %}
+{% load humanize %}
+{% load evelinks %}
+
+{% block details %}
+
+    <div class="panel panel-default">
+        <div class="panel-heading" style="display:flex;">
+            <h3 class="panel-title">{% translate 'Characters' %}</h3>
+        </div>
+        <div class="panel-body">
+            <!-- Characters -->
+            <div class="character-cards">
+                <ul class="cards_container">
+                    <!-- Add New Character -->
+                    <li class="cards_item">
+                        <div class="card">
+                            <div class="card-header">{% translate 'Register Character' %}</div>
+
+                            <div class="card-body card__content">
+                                <a href="{% url 'miningtaxes:add_character' %}">
+                                    <img src="{{ 1|character_portrait_url:256 }}" alt="Add character">
+                                </a>
+                            </div>
+
+                            <div class="card-footer">
+                                <a class="btn btn-primary btn-sm" href="{% url 'miningtaxes:add_character' %}">{% translate 'Register' %}</a>
+                            </div>
+                        </div>
+                    </li>
+
+                    {% if has_registered_characters %}
+                        <!-- Registered Characters -->
+                        {% for auth_character in auth_characters|dictsort:"character_name" %}
+                            <li class="cards_item">
+                                <div class="card">
+                                    <div class="card-header">
+                                        {{ auth_character.character_name }}
+                                        {% if auth_character.character_id == main_character_id %}
+                                            &nbsp;<i class="fas fa-crown" title="Main character"></i>
+                                        {% endif %}
+                                        {% if auth_character.character.is_shared %}
+                                            &nbsp;<i class="far fa-eye" title="Currently shared with recruiters"></i>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="card-body card__content">
+                                        <p>
+                                            <a href="{% url 'miningtaxes:character_viewer' auth_character.character.pk %}">
+                                                <span class="aa-miningtaxes-launcher-character-image">
+                                                    <img src="{{ auth_character.character_id|character_portrait_url:256 }}" alt="{{ auth_character.character_name }}">
+
+                                                    {% if auth_character.alliance_id %}
+                                                        <span class="aa-miningtaxes-alliance-logo">
+                                                            <img class="" src="{{ auth_character.alliance_id|alliance_logo_url:64 }}" title="{{ auth_character.alliance_name }}">
+                                                        </span>
+                                                    {% endif %}
+
+                                                    <span class="aa-miningtaxes-corporation-logo">
+                                                        <img class="" src="{{ auth_character.corporation_id|corporation_logo_url:64 }}" title="{{ auth_character.corporation_name }}">
+                                                    </span>
+                                                </span>
+                                            </a>
+                                        </p>
+
+                                        <div class="text-center">
+                                            <br>
+                                            {% if auth_character.character.wallet_balance %}
+                                                {{ auth_character.character.wallet_balance.total|intword|default_if_none:"-" }} ISK<br>
+                                            {% else %}
+                                                <span class="text-muted">{% translate "(no data yet)" %}</span>
+                                            {% endif %}
+
+                                        </div>
+                                    </div>
+
+                                    <div class="card-footer">
+                                        <a class="btn btn-success btn-sm" href="{% url 'miningtaxes:character_viewer' auth_character.character.pk %}"
+                                            role="button" title="{% translate 'View this character.' %}">
+                                            <i class="fas fa-sign-in-alt"></i>
+                                        </a>
+
+                                        <a class="btn btn-danger btn-sm" href="{% url 'miningtaxes:remove_character' auth_character.character.pk %}"
+                                            role="button" title="{% translate 'Remove this character.' %}"
+                                            onclick="return confirm('Are you sure you want to REMOVE this character?')">
+                                            <i class="far fa-trash-alt"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    {% endif %}
+                </ul>
+            </div>
+
+            {% if unregistered_chars|length > 0 %}
+                <p class="text-warning">
+                    <strong>
+                    <i class="fas fa-exclamation-triangle"></i>
+                    {% translate 'Unregistered character(s):' %}&nbsp;&nbsp;</strong>
+                    {{ unregistered_chars|join:", " }}
+                </p>
+            {% endif %}
+
+        </div>
+    </div>
+
+{% endblock details %}
+
+{% block extra_javascript %}
+{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'miningtaxes/css/global.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'miningtaxes/css/miningtaxes.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'miningtaxes/css/launcher.css' %}" type="text/css">
+{% endblock %}
+
+{% block extra_script %}
+{% endblock %}

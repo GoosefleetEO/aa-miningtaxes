@@ -265,7 +265,7 @@ SITE_NAME = "testauth"
 DEBUG = False
 
 # Add any additional apps to this list.
-INSTALLED_APPS += ["example"]
+INSTALLED_APPS += ["miningtaxes"]
 
 # Enter credentials to use MySQL/MariaDB. Comment out to use sqlite3
 """
