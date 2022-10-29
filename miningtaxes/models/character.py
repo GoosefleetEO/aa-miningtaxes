@@ -8,7 +8,6 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
-from django.db.models import ExpressionWrapper, F
 from django.utils.functional import cached_property
 from django.utils.timezone import now
 from esi.errors import TokenError
@@ -22,53 +21,17 @@ from app_utils.allianceauth import notify_throttled
 from app_utils.caching import ObjectCacheMixin
 from app_utils.logging import LoggerAddTag
 
-from . import __title__
-from .app_settings import (
+from .. import __title__
+from ..app_settings import (
     MININGTAXES_REFINED_RATE,
     MININGTAXES_UPDATE_LEDGER_STALE,
     MININGTAXES_UPDATE_STALE_OFFSET,
 )
-from .decorators import fetch_token_for_character
-from .helpers import get_price, get_tax
-from .providers import esi
+from ..decorators import fetch_token_for_character
+from ..providers import esi
+from .orePrices import get_price, get_tax
 
 logger = LoggerAddTag(get_extension_logger(__name__), __title__)
-
-
-class General(models.Model):
-    """Meta model for app permissions"""
-
-    class Meta:
-        managed = False
-        default_permissions = ()
-        permissions = (
-            ("basic_access", "Can access this app"),
-            ("admin_access", "Can set taxes and view everything"),
-        )
-
-
-class CharacterMiningLedgerEntryQueryset(models.QuerySet):
-    def annotate_pricing(self) -> models.QuerySet:
-        """Annotate price and total columns."""
-        return (
-            self.select_related("eve_type__market_price")
-            .annotate(price=F("eve_type__market_price__average_price"))
-            .annotate(
-                total=ExpressionWrapper(
-                    F("eve_type__market_price__average_price") * F("quantity"),
-                    output_field=models.FloatField(),
-                ),
-            )
-        )
-
-
-class CharacterMiningLedgerEntryManagerBase(models.Manager):
-    pass
-
-
-CharacterMiningLedgerEntryManager = CharacterMiningLedgerEntryManagerBase.from_queryset(
-    CharacterMiningLedgerEntryQueryset
-)
 
 
 class CharacterQuerySet(models.QuerySet):
@@ -353,6 +316,21 @@ class CharacterUpdateStatus(models.Model):
         self.save()
 
 
+class CharacterMiningLedgerEntryQueryset(models.QuerySet):
+    def annotate_pricing(self) -> models.QuerySet:
+        """Annotate price and total columns."""
+        return
+
+
+class CharacterMiningLedgerEntryManagerBase(models.Manager):
+    pass
+
+
+CharacterMiningLedgerEntryManager = CharacterMiningLedgerEntryManagerBase.from_queryset(
+    CharacterMiningLedgerEntryQueryset
+)
+
+
 class CharacterMiningLedgerEntry(models.Model):
     """Mining ledger entry of a character."""
 
@@ -365,10 +343,10 @@ class CharacterMiningLedgerEntry(models.Model):
         EveSolarSystem, on_delete=models.CASCADE, related_name="+"
     )
     eve_type = models.ForeignKey(EveType, on_delete=models.CASCADE, related_name="+")
-    raw_price = 0.0
-    refined_price = 0.0
-    taxed_value = 0.0
-    taxes_owed = 0.0
+    raw_price = models.FloatField(default=0.0)
+    refined_price = models.FloatField(default=0.0)
+    taxed_value = models.FloatField(default=0.0)
+    taxes_owed = models.FloatField(default=0.0)
 
     objects = CharacterMiningLedgerEntryManager()
 
@@ -405,3 +383,4 @@ class CharacterMiningLedgerEntry(models.Model):
         if self.raw_price > self.taxed_value:
             self.taxed_value = self.raw_price
         self.taxes_owed = get_tax(self.eve_type) * self.taxed_value
+        self.save()
