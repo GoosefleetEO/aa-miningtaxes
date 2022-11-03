@@ -2,26 +2,39 @@ import requests
 from celery import shared_task
 
 from django.db import Error
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
+from allianceauth.eveonline.models import EveCharacter
 from allianceauth.services.hooks import get_extension_logger
 
-from .app_settings import (  # MEMBERAUDIT_BULK_METHODS_BATCH_SIZE,; MEMBERAUDIT_LOG_UPDATE_STATS,; MEMBERAUDIT_TASKS_MAX_ASSETS_PER_PASS,; MEMBERAUDIT_TASKS_TIME_LIMIT,; MEMBERAUDIT_UPDATE_STALE_RING_2,
+from .app_settings import (
     MININGTAXES_PRICE_JANICE_API_KEY,
     MININGTAXES_PRICE_METHOD,
     MININGTAXES_PRICE_SOURCE_ID,
     MININGTAXES_PRICE_SOURCE_NAME,
     MININGTAXES_TASKS_OBJECT_CACHE_TIMEOUT,
     MININGTAXES_TASKS_TIME_LIMIT,
+    MININGTAXES_TAX_ONLY_CORP_MOONS,
 )
 from .helpers import PriceGroups
-from .models import Character, OrePrices
+from .models import AdminCharacter, AdminMiningObsLog, Character, OrePrices, Settings
 
 logger = get_extension_logger(__name__)
-
-# Create your tasks here
-
 TASK_DEFAULT_KWARGS = {"time_limit": MININGTAXES_TASKS_TIME_LIMIT, "max_retries": 3}
+
+
+@shared_task(**{**TASK_DEFAULT_KWARGS, **{"bind": True}})
+def update_daily(self):
+    update_all_prices()
+    characters = AdminCharacter.objects.all()
+    for character in characters:
+        update_admin_character(character_pk=character.id, celery=True)
+    characters = Character.objects.all()
+    for character in characters:
+        update_character(character_pk=character.id, celery=True)
+    add_corp_moon_taxes()
+    add_tax_credits()
 
 
 def valid_janice_api_key():
@@ -66,8 +79,8 @@ def get_bulk_prices(type_ids):
         output = {}
         for item in r:
             output[str(item["itemType"]["eid"])] = {
-                "buy": {"max": str(item["top5AveragePrices"]["buyPrice5DayMedian"])},
-                "sell": {"min": str(item["top5AveragePrices"]["sellPrice5DayMedian"])},
+                "buy": {"max": str(item["top5AveragePrices"]["buyPrice"])},
+                "sell": {"min": str(item["top5AveragePrices"]["sellPrice"])},
             }
         r = output
     else:
@@ -163,7 +176,91 @@ def update_all_prices(self):
 
 
 @shared_task(**{**TASK_DEFAULT_KWARGS, **{"bind": True}})
-def update_character(self, character_pk: int, force_update: bool = False) -> bool:
+def update_admin_character(
+    self, character_pk: int, force_update: bool = False, celery=False
+) -> bool:
+    """Start respective update tasks for all stale sections of a character
+
+    Args:
+    - character_pk: PL of character to update
+    - force_update: When set to True will always update regardless of stale status
+
+    Returns:
+    - True when update was conducted
+    - False when no updated was needed
+    """
+    character = AdminCharacter.objects.get_cached(
+        pk=character_pk, timeout=MININGTAXES_TASKS_OBJECT_CACHE_TIMEOUT
+    )
+    if character.is_orphan:
+        logger.info("%s: Skipping update for orphaned character", character)
+        return False
+    needs_update = force_update
+    needs_update |= character.is_ledger_stale()
+
+    if not needs_update:
+        logger.info("%s: No update required", character)
+        return False
+
+    logger.info(
+        "%s: Starting %s character update", character, "forced" if force_update else ""
+    )
+
+    character.update_all()
+    if not celery and MININGTAXES_TAX_ONLY_CORP_MOONS:
+        add_corp_moon_taxes()
+
+
+def add_tax_credits():
+    settings = Settings.load()
+    print(settings.phrase)
+    characters = AdminCharacter.objects.all()
+    for character in characters:
+        entries = character.corp_ledger.all()
+        for entry in entries:
+            if settings.phrase != "" and settings.phrase not in entry.reason:
+                continue
+            print(entry, entry.reason, entry.amount, entry.date, entry.taxed_id)
+            payee = None
+            try:
+                payee = get_object_or_404(
+                    Character,
+                    eve_character_id=EveCharacter.objects.get(
+                        character_id=entry.taxed_id
+                    ).pk,
+                )
+            except EveCharacter.DoesNotExist:
+                pass
+            if payee is None:
+                continue
+            print(payee)
+            payee.tax_credits.update_or_create(date=entry.date, credit=entry.amount)
+
+
+def add_corp_moon_taxes():
+    characters = Character.objects.all()
+    for character in characters:
+        add_corp_moon_taxes_by_char(character)
+
+
+def add_corp_moon_taxes_by_char(character):
+    entries = AdminMiningObsLog.objects.filter(
+        miner_id=character.eve_character.character_id
+    )
+    for entry in entries:
+        (row, _) = character.mining_ledger.update_or_create(
+            date=entry.date,
+            eve_solar_system=entry.eve_solar_system,
+            eve_type=entry.eve_type,
+            defaults={"quantity": entry.quantity},
+        )
+        row.calc_prices()
+
+
+@shared_task(**{**TASK_DEFAULT_KWARGS, **{"bind": True}})
+def update_character(
+    self, character_pk: int, force_update: bool = False, celery=False
+) -> bool:
     """Start respective update tasks for all stale sections of a character
 
     Args:
@@ -192,3 +289,5 @@ def update_character(self, character_pk: int, force_update: bool = False) -> boo
     )
 
     character.update_mining_ledger()
+    if not celery and MININGTAXES_TAX_ONLY_CORP_MOONS:
+        add_corp_moon_taxes_by_char(character)

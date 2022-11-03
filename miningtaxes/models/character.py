@@ -24,10 +24,12 @@ from app_utils.logging import LoggerAddTag
 from .. import __title__
 from ..app_settings import (
     MININGTAXES_REFINED_RATE,
+    MININGTAXES_TAX_ONLY_CORP_MOONS,
     MININGTAXES_UPDATE_LEDGER_STALE,
     MININGTAXES_UPDATE_STALE_OFFSET,
 )
 from ..decorators import fetch_token_for_character
+from ..helpers import PriceGroups
 from ..providers import esi
 from .orePrices import get_price, get_tax
 
@@ -53,7 +55,7 @@ class CharacterManagerBase(ObjectCacheMixin, models.Manager):
 CharacterManager = CharacterManagerBase.from_queryset(CharacterQuerySet)
 
 
-class Character(models.Model):
+class CharacterAbstract(models.Model):
     id = models.AutoField(primary_key=True)
     eve_character = models.OneToOneField(
         EveCharacter, related_name="miningtaxes_character", on_delete=models.CASCADE
@@ -62,6 +64,7 @@ class Character(models.Model):
     objects = CharacterManager()
 
     class Meta:
+        abstract = True
         default_permissions = ()
 
     def __str__(self) -> str:
@@ -198,6 +201,8 @@ class Character(models.Model):
         deadline = now() - self.update_time_until_stale()
         return update_status.started_at < deadline
 
+
+class Character(CharacterAbstract):
     @fetch_token_for_character("esi-industry.read_character_mining.v1")
     def update_mining_ledger(self, token: Token):
         """Update mining ledger from ESI for this character."""
@@ -207,10 +212,15 @@ class Character(models.Model):
             token=token.valid_access_token(),
         ).results()
         for entry in entries:
+            eve_type, _ = EveType.objects.get_or_create_esi(id=entry["type_id"])
+            if (
+                eve_type.eve_group_id in PriceGroups.moon_ore_groups
+            ) and MININGTAXES_TAX_ONLY_CORP_MOONS:
+                continue
+
             eve_solar_system, _ = EveSolarSystem.objects.get_or_create_esi(
                 id=entry["solar_system_id"]
             )
-            eve_type, _ = EveType.objects.get_or_create_esi(id=entry["type_id"])
             (row, _) = self.mining_ledger.update_or_create(
                 date=entry["date"],
                 eve_solar_system=eve_solar_system,
@@ -224,6 +234,26 @@ class Character(models.Model):
         return [
             "esi-industry.read_character_mining.v1",
         ]
+
+
+class CharacterTaxCredits(models.Model):
+    character = models.ForeignKey(
+        Character, on_delete=models.CASCADE, related_name="tax_credits"
+    )
+    date = models.DateTimeField(db_index=True)
+    credit = models.FloatField(default=0.0)
+
+    class Meta:
+        default_permissions = ()
+        constraints = [
+            models.UniqueConstraint(
+                fields=["character", "date"],
+                name="functional_pk_miningtaxes_charactertaxes",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.character} - {self.date} - {self.credit} ISK"
 
 
 class CharacterUpdateStatus(models.Model):

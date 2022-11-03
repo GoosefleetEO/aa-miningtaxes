@@ -17,9 +17,37 @@ from app_utils.logging import LoggerAddTag
 
 from . import __title__, tasks
 from .decorators import fetch_character_if_allowed
-from .models import Character
+from .models import AdminCharacter, Character
 
 logger = LoggerAddTag(get_extension_logger(__name__), __title__)
+
+
+@login_required
+@permission_required("miningtaxes.admin_access")
+def admin_launcher(request):
+    admin_query = AdminCharacter.objects.all()
+    auth_characters = list()
+    for a_character in admin_query:
+        eve_character = a_character.eve_character
+        auth_characters.append(
+            {
+                "character_id": eve_character.character_id,
+                "character_name": eve_character.character_name,
+                "character": a_character,
+                "alliance_id": eve_character.alliance_id,
+                "alliance_name": eve_character.alliance_name,
+                "corporation_id": eve_character.corporation_id,
+                "corporation_name": eve_character.corporation_name,
+            }
+        )
+
+    context = {
+        "page_title": "Admin Settings",
+        "auth_characters": auth_characters,
+        "has_registered_characters": len(auth_characters) > 0,
+    }
+
+    return render(request, "miningtaxes/admin_launcher.html", context)
 
 
 @login_required
@@ -90,6 +118,27 @@ def launcher(request) -> HttpResponse:
 
 
 @login_required
+@permission_required("miningtaxes.admin_access")
+@token_required(scopes=AdminCharacter.get_esi_scopes())
+def add_admin_character(request, token) -> HttpResponse:
+    eve_character = get_object_or_404(EveCharacter, character_id=token.character_id)
+    with transaction.atomic():
+        character, _ = AdminCharacter.objects.update_or_create(
+            eve_character=eve_character
+        )
+    tasks.update_admin_character.delay(character_pk=character.pk)
+    messages.success(
+        request,
+        format_html(
+            "<strong>{}</strong> has been registered. "
+            "Note that it can take a minute until all character data is visible.",
+            eve_character,
+        ),
+    )
+    return redirect("miningtaxes:admin_launcher")
+
+
+@login_required
 @permission_required("miningtaxes.basic_access")
 @token_required(scopes=Character.get_esi_scopes())
 def add_character(request, token) -> HttpResponse:
@@ -106,6 +155,32 @@ def add_character(request, token) -> HttpResponse:
         ),
     )
     return redirect("miningtaxes:launcher")
+
+
+@login_required
+@permission_required("miningtaxes.admin_access")
+def remove_admin_character(request, character_pk: int) -> HttpResponse:
+    try:
+        character = AdminCharacter.objects.select_related(
+            "eve_character__character_ownership__user", "eve_character"
+        ).get(pk=character_pk)
+    except Character.DoesNotExist:
+        return HttpResponseNotFound(f"Character with pk {character_pk} not found")
+    if character.user and character.user == request.user:
+        character_name = character.eve_character.character_name
+
+        character.delete()
+        messages.success(
+            request,
+            format_html(
+                "Removed character <strong>{}</strong> as requested.", character_name
+            ),
+        )
+    else:
+        return HttpResponseForbidden(
+            f"No permission to remove Character with pk {character_pk}"
+        )
+    return redirect("miningtaxes:admin_launcher")
 
 
 @login_required

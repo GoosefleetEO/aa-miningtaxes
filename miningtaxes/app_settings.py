@@ -1,10 +1,11 @@
-from django.conf import settings
-
 from app_utils.django import clean_setting
 
 # put your app settings here
 
-EXAMPLE_SETTING_ONE = getattr(settings, "EXAMPLE_SETTING_ONE", None)
+MININGTAXES_TAX_ONLY_CORP_MOONS = clean_setting("MININGTAXES_TAX_ONLY_CORP_MOONS", True)
+"""Only tax corporate moons using moon observers as opposed to all moons appearing
+in the personal mining ledgers.
+"""
 
 MININGTAXES_UPDATE_LEDGER_STALE = clean_setting("MININGTAXES_UPDATE_LEDGER_STALE", 240)
 """Minutes after which a character's mining ledger is considered stale

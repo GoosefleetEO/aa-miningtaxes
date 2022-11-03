@@ -2,6 +2,14 @@ from eveuniverse.models import EveType
 
 
 class PriceGroups:
+    moon_ore_groups = (
+        1923,  # R64 Moon ores
+        1922,  # R32 Moon ores
+        1921,  # R16 Moon ores
+        1920,  # R8 Moon ores
+        1884,  # R4 Moon ores
+    )
+
     groups = (
         711,  # Gasses
         1923,  # R64 Moon ores
