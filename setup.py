@@ -39,5 +39,9 @@ setup(
         "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
     ],
     python_requires="~=3.7",
-    install_requires=["allianceauth>=2.9", "allianceauth-app-utils>=1.14.2"],
+    install_requires=[
+        "allianceauth>=2.9",
+        "allianceauth-app-utils>=1.14.2",
+        "django-eveuniverse>=0.8.2",
+    ],
 )
