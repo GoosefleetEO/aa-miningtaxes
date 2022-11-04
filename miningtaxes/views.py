@@ -17,7 +17,8 @@ from app_utils.logging import LoggerAddTag
 
 from . import __title__, tasks
 from .decorators import fetch_character_if_allowed
-from .models import AdminCharacter, Character
+from .forms import SettingsForm
+from .models import AdminCharacter, Character, Settings
 
 logger = LoggerAddTag(get_extension_logger(__name__), __title__)
 
@@ -25,6 +26,19 @@ logger = LoggerAddTag(get_extension_logger(__name__), __title__)
 @login_required
 @permission_required("miningtaxes.admin_access")
 def admin_launcher(request):
+    settings = Settings.load()
+    if request.method == "POST":
+        form = SettingsForm(request.POST)
+        if form.is_valid():
+            form = SettingsForm(request.POST, instance=settings)
+            form.save()
+            messages.success(
+                request,
+                format_html("Changes saved!"),
+            )
+    else:
+        form = SettingsForm(instance=settings)
+
     admin_query = AdminCharacter.objects.all()
     auth_characters = list()
     for a_character in admin_query:
@@ -45,9 +59,18 @@ def admin_launcher(request):
         "page_title": "Admin Settings",
         "auth_characters": auth_characters,
         "has_registered_characters": len(auth_characters) > 0,
+        "form": form,
     }
-
     return render(request, "miningtaxes/admin_launcher.html", context)
+
+
+@login_required
+@permission_required("miningtaxes.admin_access")
+def admin_tables(request):
+    context = {
+        "page_title": "Admin Tables",
+    }
+    return render(request, "miningtaxes/admin_tables.html", context)
 
 
 @login_required

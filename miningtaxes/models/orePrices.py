@@ -6,12 +6,22 @@ from allianceauth.services.hooks import get_extension_logger
 from app_utils.logging import LoggerAddTag
 
 from .. import __title__
+from ..helpers import PriceGroups
+from .settings import Settings
 
 logger = LoggerAddTag(get_extension_logger(__name__), __title__)
 
 
 def get_tax(eve_type):
-    return 0.10
+    settings = Settings.load()
+    pg = PriceGroups()
+    if eve_type.eve_group_id not in pg.taxgroups:
+        logger.debug(
+            "Unknown evetype for %s, group: %d" % (eve_type, eve_type.eve_group_id)
+        )
+        return 0.10
+    group = "tax_" + pg.taxgroups[eve_type.eve_group_id]
+    return settings.__dict__[group]
 
 
 def get_price(eve_type):

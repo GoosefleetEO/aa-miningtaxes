@@ -81,3 +81,6 @@ class PriceGroups:
                     continue
                 added.add(it.id)
                 self.items.append(it)
+        self.taxable_groups = set()
+        for k in self.taxgroups.keys():
+            self.taxable_groups.add(self.taxgroups[k])

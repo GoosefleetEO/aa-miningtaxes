@@ -4,10 +4,14 @@ import hashlib
 import json
 from typing import Any, Optional
 
+from dateutil.relativedelta import relativedelta
+
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
+from django.db.models import Sum
+from django.db.models.functions import TruncMonth
 from django.utils.functional import cached_property
 from django.utils.timezone import now
 from esi.errors import TokenError
@@ -235,6 +239,48 @@ class Character(CharacterAbstract):
             "esi-industry.read_character_mining.v1",
         ]
 
+    def impute(self, months):
+        newmonths = []
+        for h in months:
+            if type(h["month"]) == dt.datetime:
+                h["month"] = h["month"].date()
+            newmonths.append(h)
+        months = newmonths
+        lastmonth = dt.date(now().year, now().month, 1)
+        curmonth = months[0]["month"]
+        allmonths = set(map(lambda x: x["month"], months))
+        while curmonth <= lastmonth:
+            if curmonth not in allmonths:
+                months.append({"month": curmonth, "total": 0.0})
+            curmonth += relativedelta(months=1)
+        return sorted(months, key=lambda x: x["month"])
+
+    def get_lifetime_taxes(self):
+        return round(
+            self.mining_ledger.all().aggregate(Sum("taxes_owed"))["taxes_owed__sum"], 2
+        )
+
+    def get_lifetime_credits(self):
+        return round(self.tax_credits.all().aggregate(Sum("credit"))["credit__sum"], 2)
+
+    def get_monthly_taxes(self):
+        return self.impute(
+            self.mining_ledger.all()
+            .annotate(month=TruncMonth("date"))
+            .values("month")
+            .annotate(total=Sum("taxes_owed"))
+            .order_by("month")
+        )
+
+    def get_monthly_credits(self):
+        return self.impute(
+            self.tax_credits.all()
+            .annotate(month=TruncMonth("date"))
+            .values("month")
+            .annotate(total=Sum("credit"))
+            .order_by("month")
+        )
+
 
 class CharacterTaxCredits(models.Model):
     character = models.ForeignKey(
@@ -413,4 +459,8 @@ class CharacterMiningLedgerEntry(models.Model):
         if self.raw_price > self.taxed_value:
             self.taxed_value = self.raw_price
         self.taxes_owed = get_tax(self.eve_type) * self.taxed_value
+        self.raw_price = round(self.raw_price, 2)
+        self.refined_price = round(self.refined_price, 2)
+        self.taxed_value = round(self.taxed_value, 2)
+        self.taxes_owed = round(self.taxes_owed, 2)
         self.save()

@@ -3,8 +3,21 @@
 {% load static %}
 {% load humanize %}
 {% load evelinks %}
+{% load bootstrap %}
 
 {% block details %}
+    <div class="panel panel-default">
+        <div class="panel-heading" style="display:flex;">
+            <h3 class="panel-title">{% translate 'Tax Settings' %}</h3>
+        </div>
+        <div class="panel-body">
+	    <form class="form" action="{{ url }}" method="POST">
+		    {% csrf_token %}
+		    {{ form|bootstrap }}
+		    <button type="submit" class="btn btn-primary">Edit Settings</button>
+	    </form>
+	</div>
+    </div>
     <div class="panel panel-default">
         <div class="panel-heading" style="display:flex;">
             <h3 class="panel-title">{% translate 'Accountant Characters' %}</h3>
