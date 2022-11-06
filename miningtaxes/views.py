@@ -511,9 +511,8 @@ def character_viewer(request, character_pk: int):
 
 @login_required
 @permission_required("memberaudit.basic_access")
-def character_mining_ledger_data(
-    request, character_pk: int, character: Character
-) -> JsonResponse:
+def character_mining_ledger_data(request, character_pk: int) -> JsonResponse:
+    character = Character.objects.get(pk=character_pk)
     qs = character.mining_ledger.select_related(
         "eve_solar_system",
         "eve_solar_system__eve_constellation__eve_region",
