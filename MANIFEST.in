@@ -1,5 +1,6 @@
 include LICENSE
 include README.md
 recursive-include miningtaxes *.py
+include miningtaxes/swagger.json
 recursive-include miningtaxes/static *
 recursive-include miningtaxes/templates *
