@@ -17,7 +17,14 @@ from .app_settings import (
     MININGTAXES_TAX_ONLY_CORP_MOONS,
 )
 from .helpers import PriceGroups
-from .models import AdminCharacter, AdminMiningObsLog, Character, OrePrices, Settings
+from .models import (
+    AdminCharacter,
+    AdminMiningCorpLedgerEntry,
+    AdminMiningObsLog,
+    Character,
+    OrePrices,
+    Settings,
+)
 
 logger = get_extension_logger(__name__)
 TASK_DEFAULT_KWARGS = {"time_limit": MININGTAXES_TASKS_TIME_LIMIT, "max_retries": 3}
@@ -216,7 +223,6 @@ def add_tax_credits():
         for entry in entries:
             if settings.phrase != "" and settings.phrase not in entry.reason:
                 continue
-            print(entry, entry.reason, entry.amount, entry.date, entry.taxed_id)
             payee = None
             try:
                 payee = get_object_or_404(
@@ -229,8 +235,18 @@ def add_tax_credits():
                 pass
             if payee is None:
                 continue
-            print(payee)
             payee.tax_credits.update_or_create(date=entry.date, credit=entry.amount)
+
+
+def add_tax_credits_by_char(character):
+    settings = Settings.load()
+    entries = AdminMiningCorpLedgerEntry.objects.filter(
+        taxed_id=character.eve_character.character_id
+    )
+    for entry in entries:
+        if settings.phrase != "" and settings.phrase not in entry.reason:
+            continue
+        character.tax_credits.update_or_create(date=entry.date, credit=entry.amount)
 
 
 def add_corp_moon_taxes():
@@ -283,5 +299,6 @@ def update_character(
     )
 
     character.update_mining_ledger()
+    add_tax_credits_by_char(character)
     if not celery and MININGTAXES_TAX_ONLY_CORP_MOONS:
         add_corp_moon_taxes_by_char(character)

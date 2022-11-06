@@ -1,4 +1,8 @@
-from .admin import AdminCharacter, AdminMiningObsLog  # noqa: F401
+from .admin import (  # noqa: F401
+    AdminCharacter,
+    AdminMiningCorpLedgerEntry,
+    AdminMiningObsLog,
+)
 from .character import (  # noqa: F401
     Character,
     CharacterMiningLedgerEntry,
