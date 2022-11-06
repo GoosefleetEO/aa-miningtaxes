@@ -25,10 +25,10 @@ from app_utils.logging import LoggerAddTag
 from app_utils.views import bootstrap_icon_plus_name_html
 
 from . import __title__, tasks
-from .decorators import fetch_character_if_allowed
 from .forms import SettingsForm
 from .models import AdminCharacter, Character, Settings
 
+# from .decorators import fetch_character_if_allowed
 logger = LoggerAddTag(get_extension_logger(__name__), __title__)
 
 
@@ -511,7 +511,6 @@ def character_viewer(request, character_pk: int):
 
 @login_required
 @permission_required("memberaudit.basic_access")
-@fetch_character_if_allowed()
 def character_mining_ledger_data(
     request, character_pk: int, character: Character
 ) -> JsonResponse:
