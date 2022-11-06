@@ -108,7 +108,7 @@ class AdminCharacter(CharacterAbstract):
                 date=entry["date"],
                 defaults={
                     "amount": entry["amount"],
-                    "reason": entry["reason"],
+                    "reason": entry["reason"][0:32],
                 },
             )
 
