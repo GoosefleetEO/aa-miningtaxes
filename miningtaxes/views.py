@@ -260,6 +260,8 @@ def summary_month_json(request, user_pk: int):
     monthly = list(map(lambda x: x.get_monthly_taxes(), characters))
     firstmonth = None
     for entries in monthly:
+        if len(entries.keys()) == 0:
+            continue
         if firstmonth is None or firstmonth > sorted(entries.keys())[0]:
             firstmonth = sorted(entries.keys())[0]
     xs = None
