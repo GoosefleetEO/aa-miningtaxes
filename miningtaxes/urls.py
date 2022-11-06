@@ -29,5 +29,20 @@ urlpatterns = [
         views.character_mining_ledger_data,
         name="character_mining_ledger_data",
     ),
+    path("user_summary/<int:user_pk>", views.user_summary, name="user_summary"),
+    path(
+        "summary_month_json/<int:user_pk>",
+        views.summary_month_json,
+        name="summary_month_json",
+    ),
+    path(
+        "all_tax_credits/<int:user_pk>",
+        views.all_tax_credits,
+        name="all_tax_credits",
+    ),
+    path("leaderboards", views.leaderboards, name="leaderboards"),
     path("admin/", views.admin_launcher, name="admin_launcher"),
+    path("admin/tables", views.admin_tables, name="admin_tables"),
+    path("admin_main_json", views.admin_main_json, name="admin_main_json"),
+    path("admin_char_json", views.admin_char_json, name="admin_char_json"),
 ]

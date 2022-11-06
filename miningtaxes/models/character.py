@@ -4,8 +4,6 @@ import hashlib
 import json
 from typing import Any, Optional
 
-from dateutil.relativedelta import relativedelta
-
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.serializers.json import DjangoJSONEncoder
@@ -239,32 +237,30 @@ class Character(CharacterAbstract):
             "esi-industry.read_character_mining.v1",
         ]
 
-    def impute(self, months):
-        newmonths = []
+    def standardize(self, months):
+        newmonths = {}
         for h in months:
             if type(h["month"]) == dt.datetime:
                 h["month"] = h["month"].date()
-            newmonths.append(h)
-        months = newmonths
-        lastmonth = dt.date(now().year, now().month, 1)
-        curmonth = months[0]["month"]
-        allmonths = set(map(lambda x: x["month"], months))
-        while curmonth <= lastmonth:
-            if curmonth not in allmonths:
-                months.append({"month": curmonth, "total": 0.0})
-            curmonth += relativedelta(months=1)
-        return sorted(months, key=lambda x: x["month"])
+            newmonths[h["month"]] = h["total"]
+        return newmonths
 
     def get_lifetime_taxes(self):
-        return round(
-            self.mining_ledger.all().aggregate(Sum("taxes_owed"))["taxes_owed__sum"], 2
-        )
+        amount = self.mining_ledger.all().aggregate(Sum("taxes_owed"))[
+            "taxes_owed__sum"
+        ]
+        if amount is None:
+            amount = 0.0
+        return round(amount, 2)
 
     def get_lifetime_credits(self):
-        return round(self.tax_credits.all().aggregate(Sum("credit"))["credit__sum"], 2)
+        amount = self.tax_credits.all().aggregate(Sum("credit"))["credit__sum"]
+        if amount is None:
+            amount = 0.0
+        return round(amount, 2)
 
     def get_monthly_taxes(self):
-        return self.impute(
+        return self.standardize(
             self.mining_ledger.all()
             .annotate(month=TruncMonth("date"))
             .values("month")
@@ -273,13 +269,31 @@ class Character(CharacterAbstract):
         )
 
     def get_monthly_credits(self):
-        return self.impute(
+        return self.standardize(
             self.tax_credits.all()
             .annotate(month=TruncMonth("date"))
             .values("month")
             .annotate(total=Sum("credit"))
             .order_by("month")
         )
+
+    def get_monthly_mining(self):
+        return self.standardize(
+            self.mining_ledger.all()
+            .annotate(month=TruncMonth("date"))
+            .values("month")
+            .annotate(total=Sum("taxed_value"))
+            .order_by("month")
+        )
+
+    def last_paid(self):
+        dt = self.tax_credits.last()
+        if dt is None:
+            return None
+        return dt.date
+
+    def give_credit(self, isk):
+        self.tax_credits.create(date=now(), credit=isk)
 
 
 class CharacterTaxCredits(models.Model):
@@ -293,7 +307,7 @@ class CharacterTaxCredits(models.Model):
         default_permissions = ()
         constraints = [
             models.UniqueConstraint(
-                fields=["character", "date"],
+                fields=["character", "date", "credit"],
                 name="functional_pk_miningtaxes_charactertaxes",
             )
         ]

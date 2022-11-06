@@ -1,4 +1,5 @@
 # Shamelessly stolen from Member Audit
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from eveuniverse.models import EveType
 
@@ -21,15 +22,18 @@ def get_tax(eve_type):
         )
         return 0.10
     group = "tax_" + pg.taxgroups[eve_type.eve_group_id]
-    return settings.__dict__[group]
+    return settings.__dict__[group] / 100.0
 
 
 def get_price(eve_type):
-    ore = OrePrices.objects.filter(id=eve_type.id)
-    if len(ore) == 0:
-        if eve_type.market_price.average_price is None:
+    try:
+        ore = OrePrices.objects.get(eve_type=eve_type)
+    except ObjectDoesNotExist:
+        if eve_type.market_price.average_price is not None:
+            return eve_type.market_price.average_price
+        if eve_type.market_price.adjusted_price is not None:
             return eve_type.market_price.adjusted_price
-        return eve_type.market_price.average_price
+        return 0.0
     return ore.buy
 
 

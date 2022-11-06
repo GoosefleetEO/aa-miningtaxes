@@ -66,9 +66,11 @@ class AdminCharacter(CharacterAbstract):
 
             (obs, _) = self.mining_obs.update_or_create(
                 obs_id=entry["observer_id"],
-                obs_type=entry["observer_type"],
-                sys_name=sys.name,
-                name=structname,
+                defaults={
+                    "obs_type": entry["observer_type"],
+                    "sys_name": sys.name,
+                    "name": structname,
+                },
             )
             ledger = esi.client.Industry.get_corporation_corporation_id_mining_observers_observer_id(
                 corporation_id=self.eve_character.corporation_id,
@@ -80,9 +82,11 @@ class AdminCharacter(CharacterAbstract):
                 obs.mining_log.update_or_create(
                     miner_id=line["character_id"],
                     date=line["last_updated"],
-                    quantity=line["quantity"],
                     eve_type=eve_type,
-                    eve_solar_system=sys,
+                    defaults={
+                        "eve_solar_system": sys,
+                        "quantity": line["quantity"],
+                    },
                 )
 
     @fetch_token_for_character("esi-wallet.read_corporation_wallets.v1")
@@ -102,8 +106,10 @@ class AdminCharacter(CharacterAbstract):
             self.corp_ledger.update_or_create(
                 taxed_id=entry["first_party_id"],
                 date=entry["date"],
-                amount=entry["amount"],
-                reason=entry["reason"],
+                defaults={
+                    "amount": entry["amount"],
+                    "reason": entry["reason"],
+                },
             )
 
 

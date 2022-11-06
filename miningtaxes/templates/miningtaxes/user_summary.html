@@ -1,0 +1,232 @@
+{% extends 'miningtaxes/base.html' %}
+{% load i18n %}
+{% load static %}
+{% load humanize %}
+{% load evelinks %}
+
+{% block details %}
+
+<div class="row">
+    <div class="col-md-12">
+    <div class="panel panel-default">
+        <div class="panel-heading" style="display:flex;">
+            <h3 class="panel-title">Monthly Taxes</h3>
+        </div>
+        <div class="panel-body">
+		<div id="isk"></div>
+        </div>
+    </div>
+    </div>
+</div>
+<div class="row">
+	<div class="col-md-6">
+    		<div class="panel panel-default">
+			<div class="panel-heading" style="display:flex;">
+			    <h3 class="panel-title">Taxes Summary</h3>
+			</div>
+			<div class="panel-body">
+				<dl class="dl-horizontal">
+					<dt>Current Taxes owed:</dt>
+					<dd class="nowrap"> {{ balance }} ISK</dd>
+					<dt>Exact amount:</dt>
+					<dd class="nowrap"> {{ balance_raw }} ISK</dd>
+					<dt>Last paid:</dt>
+					<dd class="nowrap"> {{ last_paid|timesince }}</dd>
+					<dt>Characters:</dt>
+					{% for char in auth_characters %}
+					<dd class="nowrap"><a href="{% url 'miningtaxes:character_viewer' char.pk %}"> {{ char.name }}</a></dd>
+					{% endfor %}
+
+				</dl>
+			</div>
+		</div>
+
+    		<div class="panel panel-default">
+			<div class="panel-heading" style="display:flex;">
+				<button class="btn btn-default" onclick="prior()"><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span></button>
+				<h3 class="panel-title">Leaderboard: <span id='leaderboard-month'></span></h3>
+				<button class="btn btn-default" onclick="next()"><span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span></button>
+			</div>
+			<div class="panel-body">
+			    <div class="table-responsive">
+				<table class="table table-striped table-width-fix" id="leaderboard">
+				    <thead>
+					<tr>
+					    <th>{% translate 'Rank' %}</th>
+					    <th>{% translate 'Character' %}</th>
+					    <th>{% translate 'Mined Total (ISK)' %}</th>
+					</tr>
+				    </thead>
+				    <tbody></tbody>
+				</table>
+			    </div>
+			</div>
+		</div>
+
+
+
+	</div>
+	<div class="col-md-6">
+    		<div class="panel panel-default">
+			<div class="panel-heading" style="display:flex;">
+			    <h3 class="panel-title">Tax Payments</h3>
+			</div>
+			<div class="panel-body">
+			    <div class="table-responsive">
+				<table class="table table-striped table-width-fix" id="tax_credits">
+				    <thead>
+					<tr>
+					    <th>{% translate 'Date' %}</th>
+					    <th>{% translate 'Character' %}</th>
+					    <th>{% translate 'Amount (ISK)' %}</th>
+					</tr>
+				    </thead>
+				    <tbody></tbody>
+				</table>
+			    </div>
+			</div>
+		</div>
+	</div>
+</div>
+
+{% endblock details %}
+
+{% block extra_javascript %}
+{% include 'bundles/datatables-js.html' %}
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.6.1/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/billboard.js/3.5.1/billboard.min.js" integrity="sha512-D8lwQ1l9jYC7cgPTITQkT2LZYlyx0kc+oBuLMfh1HGxwoO84e3U/RDuvbNJR1+A7HGmAIf5LMqWIlSl2UfKr7Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script type="text/javascript">
+{% autoescape off %}
+
+var lbi = -1;
+var lb_table;
+var lb_data;
+
+function next() {
+	lbi++;
+	if (lbi >= lb_data.length) { lbi--; return; }
+	render_lb();
+}
+
+function prior() {
+	lbi--
+	if (lbi < 0) { lbi++; return; }
+	render_lb();
+}
+
+
+function render_lb() {
+	$("#leaderboard-month").html(lb_data[lbi]["month"]);
+	lb_table.clear();
+	lb_data[lbi]["table"].forEach(function(d) {
+		lb_table.row.add(d);
+	});
+	lb_table.draw();
+}
+
+(function() {
+	$.getJSON("{% url 'miningtaxes:summary_month_json' user_pk %}", function (d) {
+		var iskchart = bb.generate({
+			data: {
+				x: "x",
+				columns: [d["xdata"], d["ydata"][0], d["ydata"][1] ],
+				axes: { isk: "y"},
+			},
+			axis: {
+				x: {
+					type: "timeseries",
+					tick: { format: "%Y-%m" }
+				},
+				y: {
+					tick: { format: function(x) {
+						return d3.format(",")(x);
+					} },
+					label: "ISK"
+				},
+			},
+			bindto:"#isk"
+		});
+		console.log(d); } );
+	$.getJSON("{% url 'miningtaxes:leaderboards' %}", function (d) {
+		lb_data = d["data"];
+		lbi = lb_data.length - 1;
+		render_lb();
+	} );
+
+	lb_table = $("#leaderboard").DataTable({
+		    columns: [
+			{ data: 'rank' },
+			{ data: 'character' },
+			{
+			    data: 'amount',
+			    render: $.fn.dataTable.render.number(',', '.', 2)
+			},
+		    ],
+		    order: [[0, "desc"]],
+	});
+
+        $('#tax_credits').DataTable({
+            ajax: {
+                url: "{% url 'miningtaxes:all_tax_credits' user.pk %}",
+                dataSrc: 'data',
+                cache: false
+            },
+            columns: [
+                { data: 'date' },
+                { data: 'character' },
+                {
+                    data: 'amount',
+                    render: $.fn.dataTable.render.number(',', '.', 2)
+                },
+            ],
+            order: [[0, "desc"]],
+        });
+	/*
+
+	data = {{stats}};
+        hscaling = {{hscaling}};
+        var iskchart = bb.generate({
+                data: {
+                        x: "x",
+                        columns: [ data["x"], data["overall"]["all"][0], data["donations"]["all"][0] ],
+                        axes: { isk: "y"},
+                },
+                axis: {
+                        x: {
+                                type: "timeseries",
+                                tick: { format: "%Y-%m" }
+                        },
+                        y: {
+                                tick: { format: function(x) {
+                                        if (hscaling["overall"] == "") {
+                                                return d3.format(",")(x);
+                                        } else {
+                                                return d3.format(",")(x) + " " + hscaling["overall"][0]; }
+                                        } },
+                                label: "ISK (" + hscaling["overall"] + ")"
+                        },
+                },
+                bindto:"#isk"
+        });
+	*/
+
+})();
+
+
+{% endautoescape %}
+</script>
+{% endblock %}
+
+{% block extra_css %}
+{% if NIGHT_MODE %}
+        <link rel="stylesheet" type="text/css" href="{% static 'miningtaxes/css/billboards_dark.css' %}">
+{% else %}
+        <link rel="stylesheet" type="text/css" href="{% static 'miningtaxes/css/billboards_light.css' %}">
+{% endif %}
+    <link rel="stylesheet" href="{% static 'miningtaxes/css/global.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'miningtaxes/css/miningtaxes.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'miningtaxes/css/launcher.css' %}" type="text/css">
+{% endblock %}
+
+{% block extra_script %}
+{% endblock %}

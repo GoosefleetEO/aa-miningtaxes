@@ -6,7 +6,7 @@
 
 {% block content %}
     <div class="miningtaxes">
-        <h1 class="page-header text-center">{% translate "Mining Taxes" %}</h1>
+	 <br/>
 
 	<nav class="navbar navbar-default">
     <div class="container-fluid">
@@ -30,6 +30,11 @@
                 </li>
 
 		{% if perms.miningtaxes.admin_access %}
+		<li class="{% navactive request 'miningtaxes:admin_tables' %}">
+                        <a href="{% url 'miningtaxes:admin_tables' %}">
+                            {% translate 'Admin Tables' %}
+                        </a>
+                </li>
 		<li class="{% navactive request 'miningtaxes:admin_launcher' %}">
                         <a href="{% url 'miningtaxes:admin_launcher' %}">
                             {% translate 'Admin Setup' %}
