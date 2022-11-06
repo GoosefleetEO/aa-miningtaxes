@@ -1,0 +1,10 @@
+drop table miningtaxes_settings;
+drop table miningtaxes_oreprices;
+drop table miningtaxes_adminminingobslog;
+drop table miningtaxes_adminminingobservers;
+drop table miningtaxes_adminminingcorpledgerentry;
+drop table miningtaxes_admincharacter;
+drop table miningtaxes_characterminingledgerentry;
+drop table miningtaxes_charactertaxcredits;
+drop table miningtaxes_characterupdatestatus;
+drop table miningtaxes_character;

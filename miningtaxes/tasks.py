@@ -13,7 +13,6 @@ from .app_settings import (
     MININGTAXES_PRICE_METHOD,
     MININGTAXES_PRICE_SOURCE_ID,
     MININGTAXES_PRICE_SOURCE_NAME,
-    MININGTAXES_TASKS_OBJECT_CACHE_TIMEOUT,
     MININGTAXES_TASKS_TIME_LIMIT,
     MININGTAXES_TAX_ONLY_CORP_MOONS,
 )
@@ -189,9 +188,7 @@ def update_admin_character(
     - True when update was conducted
     - False when no updated was needed
     """
-    character = AdminCharacter.objects.get_cached(
-        pk=character_pk, timeout=MININGTAXES_TASKS_OBJECT_CACHE_TIMEOUT
-    )
+    character = AdminCharacter.objects.get(pk=character_pk)
     if character.is_orphan:
         logger.info("%s: Skipping update for orphaned character", character)
         return False
@@ -213,7 +210,6 @@ def update_admin_character(
 
 def add_tax_credits():
     settings = Settings.load()
-    print(settings.phrase)
     characters = AdminCharacter.objects.all()
     for character in characters:
         entries = character.corp_ledger.all()
@@ -271,9 +267,7 @@ def update_character(
     - True when update was conducted
     - False when no updated was needed
     """
-    character = Character.objects.get_cached(
-        pk=character_pk, timeout=MININGTAXES_TASKS_OBJECT_CACHE_TIMEOUT
-    )
+    character = Character.objects.get(pk=character_pk)
     if character.is_orphan:
         logger.info("%s: Skipping update for orphaned character", character)
         return False

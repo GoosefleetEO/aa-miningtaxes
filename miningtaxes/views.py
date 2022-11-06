@@ -210,15 +210,8 @@ def admin_tables(request):
 @login_required
 @permission_required("miningtaxes.basic_access")
 def index(request):
-    owned_chars_query = (
-        EveCharacter.objects.filter(character_ownership__user=request.user)
-        .select_related(
-            "miningtaxes_character",
-        )
-        .order_by("character_name")
-    )
-    has_auth_characters = owned_chars_query.exists()
-    if not has_auth_characters:
+    characters = Character.objects.owned_by_user(request.user)
+    if len(characters) == 0:
         return redirect("miningtaxes:launcher")
     return redirect("miningtaxes:user_summary", request.user.pk)
 
@@ -506,7 +499,7 @@ def remove_character(request, character_pk: int) -> HttpResponse:
 @login_required
 @permission_required("miningtaxes.basic_access")
 def character_viewer(request, character_pk: int):
-    character = Character.objects.get_cached(pk=character_pk)
+    character = Character.objects.get(pk=character_pk)
     context = {
         "character": character,
     }

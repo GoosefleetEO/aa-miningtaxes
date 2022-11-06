@@ -129,7 +129,7 @@ function render_lb() {
 		var iskchart = bb.generate({
 			data: {
 				x: "x",
-				columns: [d["xdata"], d["ydata"][0], d["ydata"][1] ],
+				columns: [],
 				axes: { isk: "y"},
 			},
 			axis: {
@@ -146,6 +146,9 @@ function render_lb() {
 			},
 			bindto:"#isk"
 		});
+		for (var i = 0 ; i < d["ydata"].length; i++) {
+			iskchart.load({columns: [d['xdata'], d['ydata'][i]]});
+		}
 		console.log(d); } );
 	$.getJSON("{% url 'miningtaxes:leaderboards' %}", function (d) {
 		lb_data = d["data"];
