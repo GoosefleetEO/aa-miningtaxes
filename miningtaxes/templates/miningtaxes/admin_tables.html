@@ -111,7 +111,8 @@ function populate(rowi) {
 	console.log(user_data[rowi]);
 	$("#user").html(user_data[rowi].name);
 	$("#userid").val(user_data[rowi].user);
-	$("#creditbox").val(user_data[rowi].balance);
+	const bal = Math.round((user_data[rowi].balance + Number.EPSILON) * 100) / 100
+	$("#creditbox").val(bal);
 }
 
 $(document).ready(function () {

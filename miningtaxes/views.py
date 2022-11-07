@@ -28,7 +28,6 @@ from . import __title__, tasks
 from .forms import SettingsForm
 from .models import AdminCharacter, Character, Settings
 
-# from .decorators import fetch_character_if_allowed
 logger = LoggerAddTag(get_extension_logger(__name__), __title__)
 
 
@@ -117,31 +116,31 @@ def admin_char_json(request):
 
 def main_data_helper(chars):
     main_level = {}
-    last_paid = None
     char2user = {}
 
     for char in chars:
         m = char.main_character
         char2user[m] = char.user.pk
         if m not in main_level:
-            main_level[m] = {"life_tax": 0.0, "life_credits": 0.0}
+            main_level[m] = {"life_tax": 0.0, "life_credits": 0.0, "last_paid": None}
         main_level[m]["life_tax"] += char.get_lifetime_taxes()
         main_level[m]["life_credits"] += char.get_lifetime_credits()
         if char.last_paid() is not None and (
-            last_paid is None or char.last_paid() > last_paid
+            main_level[m]["last_paid"] is None
+            or char.last_paid() > main_level[m]["last_paid"]
         ):
-            last_paid = char.last_paid()
+            main_level[m]["last_paid"] = char.last_paid()
     for m in main_level.keys():
         main_level[m]["balance"] = (
             main_level[m]["life_tax"] - main_level[m]["life_credits"]
         )
-    return main_level, last_paid, char2user
+    return main_level, char2user
 
 
 @login_required
 @permission_required("miningtaxes.admin_access")
 def admin_main_json(request):
-    main_level, last_paid, char2user = main_data_helper(Character.objects.all())
+    main_level, char2user = main_data_helper(Character.objects.all())
     main_data = []
     for i, m in enumerate(main_level.keys()):
         summary_url = reverse("miningtaxes:user_summary", args=[char2user[m]])
@@ -163,7 +162,7 @@ def admin_main_json(request):
                     icon_url=m.corporation_logo_url(), name=m.corporation_name, size=16
                 ),
                 "balance": main_level[m]["balance"],
-                "last_paid": last_paid,
+                "last_paid": main_level[m]["last_paid"],
                 "action": action_html,
                 "user": char2user[m],
             }
@@ -238,7 +237,7 @@ def user_summary(request, user_pk: int):
             auth_characters.append(character)
     unregistered_chars = sorted(unregistered_chars)
     main_character_id = request.user.profile.main_character.character_id
-    main_data, last_paid, _ = main_data_helper(auth_characters)
+    main_data, _ = main_data_helper(auth_characters)
     context = {
         "page_title": "Taxes Summary",
         "auth_characters": auth_characters,
@@ -246,7 +245,7 @@ def user_summary(request, user_pk: int):
         "main_character_id": main_character_id,
         "balance": humanize_number(main_data[list(main_data.keys())[0]]["balance"]),
         "balance_raw": "{:,}".format(main_data[list(main_data.keys())[0]]["balance"]),
-        "last_paid": last_paid,
+        "last_paid": main_data[list(main_data.keys())[0]]["last_paid"],
         "user_pk": user_pk,
     }
     return render(request, "miningtaxes/user_summary.html", context)
@@ -256,6 +255,8 @@ def user_summary(request, user_pk: int):
 @permission_required("miningtaxes.basic_access")
 def summary_month_json(request, user_pk: int):
     user = User.objects.get(pk=user_pk)
+    if request.user != user and not user.has_perm("miningtaxes.admin_access"):
+        return HttpResponseForbidden()
     characters = Character.objects.owned_by_user(user)
     monthly = list(map(lambda x: x.get_monthly_taxes(), characters))
     firstmonth = None
@@ -290,6 +291,8 @@ def summary_month_json(request, user_pk: int):
 @permission_required("miningtaxes.basic_access")
 def all_tax_credits(request, user_pk: int):
     user = User.objects.get(pk=user_pk)
+    if request.user != user and not user.has_perm("miningtaxes.admin_access"):
+        return HttpResponseForbidden()
     characters = Character.objects.owned_by_user(user)
     allcredits = []
     for c in characters:
@@ -513,6 +516,10 @@ def character_viewer(request, character_pk: int):
 @permission_required("memberaudit.basic_access")
 def character_mining_ledger_data(request, character_pk: int) -> JsonResponse:
     character = Character.objects.get(pk=character_pk)
+    if request.user != character.user and not request.user.has_perm(
+        "miningtaxes.admin_access"
+    ):
+        return HttpResponseForbidden()
     qs = character.mining_ledger.select_related(
         "eve_solar_system",
         "eve_solar_system__eve_constellation__eve_region",

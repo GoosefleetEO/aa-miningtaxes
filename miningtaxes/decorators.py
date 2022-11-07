@@ -10,6 +10,38 @@ from . import __title__
 logger = LoggerAddTag(get_extension_logger(__name__), __title__)
 
 
+def fetch_user_if_allowed(*args_select_related):
+    """Asserts the current user has access to the user
+    and loads the given user if it exists
+
+    Args:
+    - Optionally add list of parameters to be passed through to select_related().
+    Note that "character_ownership" is already included.
+
+    Returns:
+    - 403 if user has no access
+    - 404 if character does not exist
+    """
+    from django.contrib.auth.models import User
+
+    def decorator(view_func):
+        @wraps(view_func)
+        def _wrapped_view(request, user_pk, *args, **kwargs):
+            try:
+                user = User.objects.get(pk=user_pk)
+            except User.DoesNotExist:
+                return HttpResponseNotFound()
+
+            if request.user != user and not user.has_perm("miningtaxes.admin_access"):
+                return HttpResponseForbidden()
+
+            return view_func(request, user_pk, user, *args, **kwargs)
+
+        return _wrapped_view
+
+    return decorator
+
+
 def fetch_character_if_allowed(*args_select_related):
     """Asserts the current user has access to the character
     and loads the given character if it exists
