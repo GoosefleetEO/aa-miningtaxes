@@ -26,9 +26,19 @@ def get_tax(eve_type):
 
 
 def get_price(eve_type):
+    ore = None
     try:
         ore = OrePrices.objects.get(eve_type=eve_type)
     except ObjectDoesNotExist:
+        pass
+    if ore is None:
+        mp = None
+        try:
+            mp = eve_type.market_price
+        except EveType.market_price.RelatedObjectDoesNotExist:
+            pass
+        if mp is None:
+            return 0.0
         if eve_type.market_price.average_price is not None:
             return eve_type.market_price.average_price
         if eve_type.market_price.adjusted_price is not None:
