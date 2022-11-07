@@ -170,7 +170,7 @@ function render_lb() {
 
         $('#tax_credits').DataTable({
             ajax: {
-                url: "{% url 'miningtaxes:all_tax_credits' user.pk %}",
+                url: "{% url 'miningtaxes:all_tax_credits' user_pk %}",
                 dataSrc: 'data',
                 cache: false
             },
