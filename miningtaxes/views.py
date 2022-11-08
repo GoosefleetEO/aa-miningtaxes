@@ -73,7 +73,7 @@ def admin_launcher(request):
 
 
 @login_required
-@permission_required("miningtaxes.admin_access")
+@permission_required("miningtaxes.auditor_access")
 def admin_char_json(request):
     char_level = {}
 
@@ -138,7 +138,7 @@ def main_data_helper(chars):
 
 
 @login_required
-@permission_required("miningtaxes.admin_access")
+@permission_required("miningtaxes.auditor_access")
 def admin_main_json(request):
     main_level, char2user = main_data_helper(Character.objects.all())
     main_data = []
@@ -171,7 +171,7 @@ def admin_main_json(request):
 
 
 @login_required
-@permission_required("miningtaxes.admin_access")
+@permission_required("miningtaxes.auditor_access")
 def admin_tables(request):
     if request.method == "POST":
         isk = request.POST["creditbox"].replace(",", "")
@@ -244,7 +244,9 @@ def user_summary(request, user_pk: int):
         "unregistered_chars": unregistered_chars,
         "main_character_id": main_character_id,
         "balance": humanize_number(main_data[list(main_data.keys())[0]]["balance"]),
-        "balance_raw": "{:,}".format(main_data[list(main_data.keys())[0]]["balance"]),
+        "balance_raw": "{:,.2f}".format(
+            round(main_data[list(main_data.keys())[0]]["balance"], 2)
+        ),
         "last_paid": main_data[list(main_data.keys())[0]]["last_paid"],
         "user_pk": user_pk,
     }
@@ -252,10 +254,50 @@ def user_summary(request, user_pk: int):
 
 
 @login_required
+@permission_required("miningtaxes.auditor_access")
+def admin_month_json(request):
+    characters = Character.objects.all()
+    monthly = list(map(lambda x: x.get_monthly_taxes(), characters))
+    users = list(map(lambda x: x.main_character.character_name, characters))
+    firstmonth = None
+    for entries in monthly:
+        if len(entries.keys()) == 0:
+            continue
+        if firstmonth is None or firstmonth > sorted(entries.keys())[0]:
+            firstmonth = sorted(entries.keys())[0]
+    xs = None
+    ys = {}
+    for i, entries in enumerate(monthly):
+        if not users[i] in ys:
+            ys[users[i]] = []
+        x = ["x"]
+        y = []
+        curmonth = firstmonth
+        lastmonth = dt.date(now().year, now().month, 1)
+        while curmonth <= lastmonth:
+            if curmonth not in entries:
+                entries[curmonth] = 0.0
+            x.append(curmonth)
+            curmonth += relativedelta(months=1)
+
+        if xs is None:
+            xs = x
+
+        for yi in range(1, len(xs)):
+            y.append(entries[xs[yi]])
+        ys[users[i]].append(y)
+    yout = []
+    for user in ys.keys():
+        yout.append([user] + [sum(x) for x in zip(*ys[user])])
+
+    return JsonResponse({"xdata": xs, "ydata": yout})
+
+
+@login_required
 @permission_required("miningtaxes.basic_access")
 def summary_month_json(request, user_pk: int):
     user = User.objects.get(pk=user_pk)
-    if request.user != user and not user.has_perm("miningtaxes.admin_access"):
+    if request.user != user and not user.has_perm("miningtaxes.auditor_access"):
         return HttpResponseForbidden()
     characters = Character.objects.owned_by_user(user)
     monthly = list(map(lambda x: x.get_monthly_taxes(), characters))
@@ -291,7 +333,7 @@ def summary_month_json(request, user_pk: int):
 @permission_required("miningtaxes.basic_access")
 def all_tax_credits(request, user_pk: int):
     user = User.objects.get(pk=user_pk)
-    if request.user != user and not user.has_perm("miningtaxes.admin_access"):
+    if request.user != user and not user.has_perm("miningtaxes.auditor_access"):
         return HttpResponseForbidden()
     characters = Character.objects.owned_by_user(user)
     allcredits = []
@@ -517,7 +559,7 @@ def character_viewer(request, character_pk: int):
 def character_mining_ledger_data(request, character_pk: int) -> JsonResponse:
     character = Character.objects.get(pk=character_pk)
     if request.user != character.user and not request.user.has_perm(
-        "miningtaxes.admin_access"
+        "miningtaxes.auditor_access"
     ):
         return HttpResponseForbidden()
     qs = character.mining_ledger.select_related(

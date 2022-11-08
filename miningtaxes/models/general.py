@@ -17,5 +17,9 @@ class General(models.Model):
         default_permissions = ()
         permissions = (
             ("basic_access", "Can access this app"),
-            ("admin_access", "Can set taxes and view everything"),
+            (
+                "admin_access",
+                "Can set tax rates for groups and add accountant characters",
+            ),
+            ("auditor_access", "Can view all registered characters data"),
         )

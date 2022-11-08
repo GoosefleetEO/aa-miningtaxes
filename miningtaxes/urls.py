@@ -45,4 +45,5 @@ urlpatterns = [
     path("admin/tables", views.admin_tables, name="admin_tables"),
     path("admin_main_json", views.admin_main_json, name="admin_main_json"),
     path("admin_char_json", views.admin_char_json, name="admin_char_json"),
+    path("admin_month_json", views.admin_month_json, name="admin_month_json"),
 ]

@@ -5,6 +5,20 @@
 {% load evelinks %}
 
 {% block details %}
+
+<div class="row">
+	<div class="col-md-12">
+    		<div class="panel panel-default">
+			<div class="panel-heading" style="display:flex;">
+			    <h3 class="panel-title">Monthly Taxes by Users</h3>
+			</div>
+			<div class="panel-body">
+			    <div id="isk"></div>
+			</div>
+		</div>
+	</div>
+</div>
+
 <div class="row">
 	<div class="col-md-12">
     		<div class="panel panel-default">
@@ -95,9 +109,16 @@
 
 {% block extra_javascript %}
 {% include 'bundles/datatables-js.html' %}
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.6.1/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/billboard.js/3.5.1/billboard.min.js" integrity="sha512-D8lwQ1l9jYC7cgPTITQkT2LZYlyx0kc+oBuLMfh1HGxwoO84e3U/RDuvbNJR1+A7HGmAIf5LMqWIlSl2UfKr7Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 {% endblock %}
 
 {% block extra_css %}
+{% if NIGHT_MODE %}
+        <link rel="stylesheet" type="text/css" href="{% static 'miningtaxes/css/billboards_dark.css' %}">
+{% else %}
+        <link rel="stylesheet" type="text/css" href="{% static 'miningtaxes/css/billboards_light.css' %}">
+{% endif %}
     <link rel="stylesheet" href="{% static 'miningtaxes/css/global.css' %}" type="text/css">
     <link rel="stylesheet" href="{% static 'miningtaxes/css/miningtaxes.css' %}" type="text/css">
     <link rel="stylesheet" href="{% static 'miningtaxes/css/launcher.css' %}" type="text/css">
@@ -116,6 +137,31 @@ function populate(rowi) {
 }
 
 $(document).ready(function () {
+	$.getJSON("{% url 'miningtaxes:admin_month_json' %}", function (d) {
+		var iskchart = bb.generate({
+			data: {
+				x: "x",
+				columns: [],
+				axes: { isk: "y"},
+			},
+			axis: {
+				x: {
+					type: "timeseries",
+					tick: { format: "%Y-%m" }
+				},
+				y: {
+					tick: { format: function(x) {
+						return d3.format(",")(x);
+					} },
+					label: "ISK"
+				},
+			},
+			bindto:"#isk"
+		});
+		for (var i = 0 ; i < d["ydata"].length; i++) {
+			iskchart.load({columns: [d['xdata'], d['ydata'][i]]});
+		}
+		console.log(d); } );
 	$.getJSON("{% url 'miningtaxes:admin_main_json' %}", function (d) {
 		user_data = d["data"];
 		user_data.forEach( function(row) {
