@@ -29,10 +29,10 @@
                     </a>
                 </li>
 
-		{% if perms.miningtaxes.admin_access %}
+		{% if perms.miningtaxes.auditor_access %}
 		<li class="{% navactive request 'miningtaxes:admin_tables' %}">
                         <a href="{% url 'miningtaxes:admin_tables' %}">
-                            {% translate 'Admin Tables' %}
+                            {% translate 'Audit Tables' %}
                         </a>
                 </li>
 		<li class="{% navactive request 'miningtaxes:admin_launcher' %}">
