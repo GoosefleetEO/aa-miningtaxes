@@ -35,6 +35,8 @@
                             {% translate 'Audit Tables' %}
                         </a>
                 </li>
+                {% endif %}
+		{% if perms.miningtaxes.admin_access %}
 		<li class="{% navactive request 'miningtaxes:admin_launcher' %}">
                         <a href="{% url 'miningtaxes:admin_launcher' %}">
                             {% translate 'Admin Setup' %}
