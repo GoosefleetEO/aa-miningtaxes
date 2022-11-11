@@ -105,6 +105,100 @@
     </div>
 </div>
 
+<div class="row">
+	<div class="col-md-12">
+    		<div class="panel panel-default">
+			<div class="panel-heading" style="display:flex;">
+			    <h3 class="panel-title">Corp Ledgers</h3>
+			</div>
+			<div class="panel-body">
+			    <div class="table-responsive">
+				<table class="table table-striped table-width-fix" id="corp_ledgers">
+				    <thead>
+					<tr>
+					    <th>{% translate 'Date' %}</th>
+					    <th>{% translate 'Name' %}</th>
+					    <th>{% translate 'Amount' %}</th>
+					    <th>{% translate 'Reason' %}</th>
+					</tr>
+				    </thead>
+				    <tbody></tbody>
+				</table>
+			    </div>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+<div class="row">
+	<div class="col-md-6">
+    		<div class="panel panel-default">
+			<div class="panel-heading" style="display:flex;">
+			    <h3 class="panel-title">Unregistered</h3>
+			</div>
+			<div class="panel-body">
+			    <div class="table-responsive">
+				<table class="table table-striped table-width-fix" id="unregistered">
+				    <thead>
+					<tr>
+					    <th>{% translate 'Name' %}</th>
+					    <th>{% translate 'Quantity Mined' %}</th>
+					</tr>
+				    </thead>
+				    <tbody></tbody>
+				</table>
+			    </div>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-6">
+    		<div class="panel panel-default">
+			<div class="panel-heading" style="display:flex;">
+			    <h3 class="panel-title">Unknown Characters</h3>
+			</div>
+			<div class="panel-body">
+			    <div class="table-responsive">
+				<table class="table table-striped table-width-fix" id="unknown">
+				    <thead>
+					<tr>
+					    <th>{% translate 'Name' %}</th>
+					    <th>{% translate 'Quantity Mined' %}</th>
+					</tr>
+				    </thead>
+				    <tbody></tbody>
+				</table>
+			    </div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="row">
+	<div class="col-md-12">
+    		<div class="panel panel-default">
+			<div class="panel-heading" style="display:flex;">
+			    <h3 class="panel-title">Corp Moon Records</h3>
+			</div>
+			<div class="panel-body">
+			    <div class="table-responsive">
+				<table class="table table-striped table-width-fix" id="corpmoon">
+				    <thead>
+					<tr>
+					    <th>{% translate 'Date' %}</th>
+					    <th>{% translate 'Name' %}</th>
+					    <th>{% translate 'Ore' %}</th>
+					    <th>{% translate 'Quantity' %}</th>
+					    <th>{% translate 'Location' %}</th>
+					</tr>
+				    </thead>
+				    <tbody></tbody>
+				</table>
+			    </div>
+			</div>
+		</div>
+	</div>
+</div>
+
 {% endblock details %}
 
 {% block extra_javascript %}
@@ -127,9 +221,11 @@
 {% block extra_script %}
 var user_data;
 var user_table;
+var unregistered_table;
+var unknown_table;
+var corpmoon_table;
 
 function populate(rowi) {
-	console.log(user_data[rowi]);
 	$("#user").html(user_data[rowi].name);
 	$("#userid").val(user_data[rowi].user);
 	const bal = Math.round((user_data[rowi].balance + Number.EPSILON) * 100) / 100
@@ -161,13 +257,66 @@ $(document).ready(function () {
 		for (var i = 0 ; i < d["ydata"].length; i++) {
 			iskchart.load({columns: [d['xdata'], d['ydata'][i]]});
 		}
-		console.log(d); } );
+		} );
 	$.getJSON("{% url 'miningtaxes:admin_main_json' %}", function (d) {
 		user_data = d["data"];
 		user_data.forEach( function(row) {
 			user_table.row.add(row);
 		});
 		user_table.draw();
+	});
+	$.getJSON("{% url 'miningtaxes:admin_corp_mining_history' %}", function (d) {
+		unregistered_table = $('#unregistered').DataTable({
+		    columns: [
+			{ data: 'name' },
+			{
+			    data: 'quantity',
+			    render: $.fn.dataTable.render.number(',', '.', 2)
+			},
+		    ],
+		    order: [[1, "desc"]]
+		});
+		unknown_table = $('#unknown').DataTable({
+		    columns: [
+			{ data: 'name' },
+			{
+			    data: 'quantity',
+			    render: $.fn.dataTable.render.number(',', '.', 2)
+			},
+		    ],
+		    order: [[1, "desc"]]
+		});
+		corpmoon_table = $('#corpmoon').DataTable({
+		    columns: [
+			{ data: 'date' },
+			{ data: 'name' },
+			{ data: 'ore' },
+			{
+			    data: 'quantity',
+			    render: $.fn.dataTable.render.number(',', '.', 2)
+			},
+			{ data: 'location' },
+		    ],
+		    order: [[0, "desc"]]
+		});
+
+		unknown_data = d["unknown_data"];
+		unknown_data.forEach( function(row) {
+			unknown_table.row.add(row);
+		});
+		unknown_table.draw();
+
+		unregistered_data = d["unregistered_data"];
+		unregistered_data.forEach( function(row) {
+			unregistered_table.row.add(row);
+		});
+		unregistered_table.draw();
+
+		mining_data = d["mining_log"];
+		mining_data.forEach( function(row) {
+			corpmoon_table.row.add(row);
+		});
+		corpmoon_table.draw();
 	});
         user_table = $('#mains').DataTable({
             columns: [
@@ -182,6 +331,25 @@ $(document).ready(function () {
             ],
             order: [[2, "desc"]]
         });
+	      console.log("HERE");
+        $('#corp_ledgers').DataTable({
+            ajax: {
+                url: "{% url 'miningtaxes:admin_corp_ledger' %}",
+                dataSrc: 'data',
+                cache: false
+            },
+            columns: [
+                { data: 'date' },
+                { data: 'name' },
+                {
+                    data: 'amount',
+                    render: $.fn.dataTable.render.number(',', '.', 2)
+                },
+                { data: 'reason' },
+            ],
+            order: [[0, "desc"]]
+        });
+	      console.log("HERE2");
         $('#chars').DataTable({
             ajax: {
                 url: "{% url 'miningtaxes:admin_char_json' %}",

@@ -26,7 +26,13 @@ from app_utils.views import bootstrap_icon_plus_name_html
 
 from . import __title__, tasks
 from .forms import SettingsForm
-from .models import AdminCharacter, Character, Settings
+from .models import (
+    AdminCharacter,
+    AdminMiningCorpLedgerEntry,
+    AdminMiningObsLog,
+    Character,
+    Settings,
+)
 
 logger = LoggerAddTag(get_extension_logger(__name__), __title__)
 
@@ -255,6 +261,103 @@ def user_summary(request, user_pk: int):
 
 @login_required
 @permission_required("miningtaxes.auditor_access")
+def admin_corp_ledger(request):
+    print("HERE")
+    obs = AdminMiningCorpLedgerEntry.objects.all().order_by("-date")
+    data = []
+    for o in obs:
+        char = o.taxed_id
+        name = None
+        eve_char = None
+        try:
+            eve_char = EveCharacter.objects.get(character_id=char)
+        except EveCharacter.DoesNotExist:
+            name = f"<a href='https://evewho.com/character/{char}'>{char}</a>"
+            pass
+        if eve_char is not None:
+            try:
+                character = eve_char.miningtaxes_character
+                name = character.main_character.character_name
+            except AttributeError:
+                char_name = eve_char.name
+                usermain = (
+                    eve_char.character_ownership.user.profile.main_character.character_name
+                )
+                name = f"{char_name} ({usermain})"
+                pass
+        data.append(
+            {
+                "date": o.date,
+                "name": name,
+                "amount": o.amount,
+                "reason": o.reason,
+            }
+        )
+    return JsonResponse({"data": data})
+
+
+@login_required
+@permission_required("miningtaxes.auditor_access")
+def admin_corp_mining_history(request):
+    obs = AdminMiningObsLog.objects.all().order_by("-date")
+    data = []
+    unknown_chars = {}
+    unregistered_chars = {}
+    for o in obs:
+        char = o.miner_id
+        eve_char = None
+        name = None
+        try:
+            eve_char = EveCharacter.objects.get(character_id=char)
+        except EveCharacter.DoesNotExist:
+            name = f"<a href='https://evewho.com/character/{char}'>{char}</a>"
+            if name not in unknown_chars:
+                unknown_chars[name] = 0
+            unknown_chars[name] += o.quantity
+            pass
+        if eve_char is not None:
+            try:
+                character = eve_char.miningtaxes_character
+                name = character.main_character.character_name
+            except AttributeError:
+                char_name = eve_char.name
+                usermain = (
+                    eve_char.character_ownership.user.profile.main_character.character_name
+                )
+                name = f"{char_name} ({usermain})"
+                if name not in unregistered_chars:
+                    unregistered_chars[name] = 0
+                unregistered_chars[name] += o.quantity
+                pass
+        data.append(
+            {
+                "date": o.date,
+                "ore": o.eve_type.name,
+                "name": name,
+                "quantity": o.quantity,
+                "location": o.eve_solar_system.name,
+            }
+        )
+
+    unknown_data = []
+    for name in unknown_chars.keys():
+        unknown_data.append({"name": name, "quantity": unknown_chars[name]})
+
+    unregistered_data = []
+    for name in unregistered_chars.keys():
+        unregistered_data.append({"name": name, "quantity": unregistered_chars[name]})
+
+    return JsonResponse(
+        {
+            "mining_log": data,
+            "unknown_data": unknown_data,
+            "unregistered_data": unregistered_data,
+        }
+    )
+
+
+@login_required
+@permission_required("miningtaxes.auditor_access")
 def admin_month_json(request):
     characters = Character.objects.all()
     monthly = list(map(lambda x: x.get_monthly_taxes(), characters))
@@ -297,7 +400,7 @@ def admin_month_json(request):
 @permission_required("miningtaxes.basic_access")
 def summary_month_json(request, user_pk: int):
     user = User.objects.get(pk=user_pk)
-    if request.user != user and not user.has_perm("miningtaxes.auditor_access"):
+    if request.user != user and not request.user.has_perm("miningtaxes.auditor_access"):
         return HttpResponseForbidden()
     characters = Character.objects.owned_by_user(user)
     monthly = list(map(lambda x: x.get_monthly_taxes(), characters))
@@ -333,7 +436,7 @@ def summary_month_json(request, user_pk: int):
 @permission_required("miningtaxes.basic_access")
 def all_tax_credits(request, user_pk: int):
     user = User.objects.get(pk=user_pk)
-    if request.user != user and not user.has_perm("miningtaxes.auditor_access"):
+    if request.user != user and not request.user.has_perm("miningtaxes.auditor_access"):
         return HttpResponseForbidden()
     characters = Character.objects.owned_by_user(user)
     allcredits = []
