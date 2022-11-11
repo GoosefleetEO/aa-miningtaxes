@@ -320,7 +320,7 @@ def admin_corp_mining_history(request):
                 character = eve_char.miningtaxes_character
                 name = character.main_character.character_name
             except AttributeError:
-                char_name = eve_char.name
+                char_name = eve_char.character_name
                 usermain = (
                     eve_char.character_ownership.user.profile.main_character.character_name
                 )
