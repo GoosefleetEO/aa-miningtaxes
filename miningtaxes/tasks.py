@@ -218,10 +218,11 @@ def update_admin_character(
 def add_tax_credits():
     settings = Settings.load()
     characters = AdminCharacter.objects.all()
+    phrase = settings.phrase.lower().strip()
     for character in characters:
         entries = character.corp_ledger.all()
         for entry in entries:
-            if settings.phrase != "" and settings.phrase not in entry.reason:
+            if phrase != "" and phrase not in entry.reason.lower():
                 continue
             payee = None
             try:

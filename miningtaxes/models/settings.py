@@ -11,7 +11,7 @@ logger = LoggerAddTag(get_extension_logger(__name__), __title__)
 
 class Settings(models.Model):
     phrase = models.CharField(
-        verbose_name="Keyword (case sensitive) that must be present in the donation reason to be counted. Leave blank/empty to count all donations regardless of reason.",
+        verbose_name="Keyword (case insensitive) that must be present in the donation reason to be counted. Leave blank/empty to count all donations regardless of reason.",
         max_length=10,
         default="",
         blank=True,
