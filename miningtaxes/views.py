@@ -32,6 +32,7 @@ from .models import (
     AdminMiningObsLog,
     Character,
     Settings,
+    ore_calc_prices,
 )
 
 logger = LoggerAddTag(get_extension_logger(__name__), __title__)
@@ -262,7 +263,6 @@ def user_summary(request, user_pk: int):
 @login_required
 @permission_required("miningtaxes.auditor_access")
 def admin_corp_ledger(request):
-    print("HERE")
     obs = AdminMiningCorpLedgerEntry.objects.all().order_by("-date")
     data = []
     for o in obs:
@@ -312,8 +312,12 @@ def admin_corp_mining_history(request):
         except EveCharacter.DoesNotExist:
             name = f"<a href='https://evewho.com/character/{char}'>{char}</a>"
             if name not in unknown_chars:
-                unknown_chars[name] = 0
-            unknown_chars[name] += o.quantity
+                unknown_chars[name] = [0, 0.0, None]
+            unknown_chars[name][0] += o.quantity
+            (_, _, value) = ore_calc_prices(o.eve_type, o.quantity)
+            unknown_chars[name][1] += value
+            if unknown_chars[name][2] is None or unknown_chars[name][2] < o.date:
+                unknown_chars[name][2] = o.date
             pass
         if eve_char is not None:
             try:
@@ -327,8 +331,15 @@ def admin_corp_mining_history(request):
                 # )
                 # name = f"{char_name} ({usermain})"
                 if name not in unregistered_chars:
-                    unregistered_chars[name] = 0
-                unregistered_chars[name] += o.quantity
+                    unregistered_chars[name] = [0, 0.0, None]
+                unregistered_chars[name][0] += o.quantity
+                (_, _, value) = ore_calc_prices(o.eve_type, o.quantity)
+                unregistered_chars[name][1] += value
+                if (
+                    unregistered_chars[name][2] is None
+                    or unregistered_chars[name][2] < o.date
+                ):
+                    unregistered_chars[name][2] = o.date
                 pass
         data.append(
             {
@@ -342,11 +353,25 @@ def admin_corp_mining_history(request):
 
     unknown_data = []
     for name in unknown_chars.keys():
-        unknown_data.append({"name": name, "quantity": unknown_chars[name]})
+        unknown_data.append(
+            {
+                "name": name,
+                "quantity": unknown_chars[name][0],
+                "isk": unknown_chars[name][1],
+                "last": unknown_chars[name][2],
+            }
+        )
 
     unregistered_data = []
     for name in unregistered_chars.keys():
-        unregistered_data.append({"name": name, "quantity": unregistered_chars[name]})
+        unregistered_data.append(
+            {
+                "name": name,
+                "quantity": unregistered_chars[name][0],
+                "isk": unregistered_chars[name][1],
+                "last": unregistered_chars[name][2],
+            }
+        )
 
     return JsonResponse(
         {

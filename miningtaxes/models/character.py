@@ -14,7 +14,7 @@ from django.utils.functional import cached_property
 from django.utils.timezone import now
 from esi.errors import TokenError
 from esi.models import Token
-from eveuniverse.models import EveSolarSystem, EveType, EveTypeMaterial
+from eveuniverse.models import EveSolarSystem, EveType
 
 from allianceauth.authentication.models import CharacterOwnership
 from allianceauth.eveonline.models import EveCharacter
@@ -25,7 +25,6 @@ from app_utils.logging import LoggerAddTag
 
 from .. import __title__
 from ..app_settings import (
-    MININGTAXES_REFINED_RATE,
     MININGTAXES_TAX_ONLY_CORP_MOONS,
     MININGTAXES_UPDATE_LEDGER_STALE,
     MININGTAXES_UPDATE_STALE_OFFSET,
@@ -33,7 +32,7 @@ from ..app_settings import (
 from ..decorators import fetch_token_for_character
 from ..helpers import PriceGroups
 from ..providers import esi
-from .orePrices import get_price, get_tax
+from .orePrices import get_tax, ore_calc_prices
 
 logger = LoggerAddTag(get_extension_logger(__name__), __title__)
 
@@ -455,23 +454,9 @@ class CharacterMiningLedgerEntry(models.Model):
     def calc_prices(self):
         if self.raw_price != 0.0:
             return
-        self.raw_price = self.quantity * get_price(self.eve_type)
-        materials = EveTypeMaterial.objects.filter(
-            eve_type_id=self.eve_type.id
-        ).prefetch_related("eve_type")
-        self.refined_price = 0.0
-        for mat in materials:
-            q = (
-                MININGTAXES_REFINED_RATE
-                * (mat.quantity * self.quantity)
-                / self.eve_type.portion_size
-            )
-            self.refined_price += q * get_price(mat.material_eve_type)
-        if self.refined_price == 0.0:
-            self.refined_price = self.raw_price
-        self.taxed_value = self.refined_price
-        if self.raw_price > self.taxed_value:
-            self.taxed_value = self.raw_price
+        self.raw_price, self.refined_price, self.taxed_value = ore_calc_prices(
+            self.eve_type, self.quantity
+        )
         self.taxes_owed = get_tax(self.eve_type) * self.taxed_value
         self.raw_price = round(self.raw_price, 2)
         self.refined_price = round(self.refined_price, 2)

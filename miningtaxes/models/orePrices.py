@@ -1,12 +1,13 @@
 # Shamelessly stolen from Member Audit
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
-from eveuniverse.models import EveType
+from eveuniverse.models import EveType, EveTypeMaterial
 
 from allianceauth.services.hooks import get_extension_logger
 from app_utils.logging import LoggerAddTag
 
 from .. import __title__
+from ..app_settings import MININGTAXES_REFINED_RATE
 from ..helpers import PriceGroups
 from .settings import Settings
 
@@ -23,6 +24,23 @@ def get_tax(eve_type):
         return 0.10
     group = "tax_" + pg.taxgroups[eve_type.eve_group_id]
     return settings.__dict__[group] / 100.0
+
+
+def ore_calc_prices(eve_type, quantity):
+    raw_price = quantity * get_price(eve_type)
+    materials = EveTypeMaterial.objects.filter(
+        eve_type_id=eve_type.id
+    ).prefetch_related("eve_type")
+    refined_price = 0.0
+    for mat in materials:
+        q = MININGTAXES_REFINED_RATE * (mat.quantity * quantity) / eve_type.portion_size
+        refined_price += q * get_price(mat.material_eve_type)
+    if refined_price == 0.0:
+        refined_price = raw_price
+    taxed_value = refined_price
+    if raw_price > taxed_value:
+        taxed_value = raw_price
+    return raw_price, refined_price, taxed_value
 
 
 def get_price(eve_type):
