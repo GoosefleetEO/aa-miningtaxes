@@ -266,6 +266,7 @@ $(document).ready(function () {
 		user_table.draw();
 	});
 	$.getJSON("{% url 'miningtaxes:admin_corp_mining_history' %}", function (d) {
+		console.log(d);
 		unregistered_table = $('#unregistered').DataTable({
 		    columns: [
 			{ data: 'name' },

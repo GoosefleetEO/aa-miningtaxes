@@ -321,10 +321,11 @@ def admin_corp_mining_history(request):
                 name = character.main_character.character_name
             except AttributeError:
                 char_name = eve_char.character_name
-                usermain = (
-                    eve_char.character_ownership.user.profile.main_character.character_name
-                )
-                name = f"{char_name} ({usermain})"
+                name = char_name
+                # usermain = (
+                #    eve_char.character_ownership.user.profile.main_character.character_name
+                # )
+                # name = f"{char_name} ({usermain})"
                 if name not in unregistered_chars:
                     unregistered_chars[name] = 0
                 unregistered_chars[name] += o.quantity
