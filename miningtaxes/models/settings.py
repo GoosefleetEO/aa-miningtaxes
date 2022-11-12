@@ -16,6 +16,11 @@ class Settings(models.Model):
         default="",
         blank=True,
     )
+    interest_rate = models.FloatField(
+        verbose_name="Monthly interest rate (%) if taxes have not been paid",
+        default=5.0,
+        null=False,
+    )
     tax_R64 = models.FloatField(
         verbose_name="Tax for Moon R64 Ore as a percent", default=10.0, null=False
     )

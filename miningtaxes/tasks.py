@@ -1,11 +1,15 @@
+from datetime import date
+
 import requests
 from celery import shared_task
 
 from django.db import Error
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.utils.timezone import now
 
 from allianceauth.eveonline.models import EveCharacter
+from allianceauth.notifications import notify
 from allianceauth.services.hooks import get_extension_logger
 
 from .app_settings import (
@@ -28,6 +32,55 @@ from .models import (
 
 logger = get_extension_logger(__name__)
 TASK_DEFAULT_KWARGS = {"time_limit": MININGTAXES_TASKS_TIME_LIMIT, "max_retries": 3}
+
+
+def calctaxes():
+    n = now().date()
+    curmonth = date(year=n.year, month=n.month, day=1)
+    user2taxes = {}
+    characters = Character.objects.all()
+    for character in characters:
+        taxes = character.get_monthly_taxes()
+        total = 0.0
+        for k in taxes.keys():
+            if k != curmonth:
+                total += taxes[k]
+        if character.user not in user2taxes:
+            user2taxes[character.user] = [0.0, 0.0, character]
+        user2taxes[character.user][0] += total
+        if total > user2taxes[character.user][1]:
+            user2taxes[character.user][1] = total
+            user2taxes[character.user][2] = character
+
+    return user2taxes
+
+
+@shared_task(**{**TASK_DEFAULT_KWARGS, **{"bind": True}})
+def notify_taxes_due(self):
+    user2taxes = calctaxes()
+
+    for u in user2taxes.keys():
+        title = "Taxes are due!"
+        message = "Please pay {:,.2f} ISK or you will be charged interest!".format(
+            user2taxes[u][0]
+        )
+        notify(user=u, title=title, message=message, level="INFO")
+
+
+@shared_task(**{**TASK_DEFAULT_KWARGS, **{"bind": True}})
+def apply_interest(self):
+    settings = Settings.load()
+    user2taxes = calctaxes()
+
+    for u in user2taxes.keys():
+        interest = round(user2taxes[u][0] * settings.interest_rate / 100.0, 2)
+        user2taxes[u][2].give_credit(-1.0 * interest)
+
+        title = "Taxes are overdue!"
+        message = "An interest of {:,.2f} ISK has been charged for late taxes.".format(
+            interest
+        )
+        notify(user=u, title=title, message=message, level="WARN")
 
 
 @shared_task(**{**TASK_DEFAULT_KWARGS, **{"bind": True}})
