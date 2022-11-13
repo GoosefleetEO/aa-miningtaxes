@@ -51,6 +51,8 @@ def calctaxes():
         if total > user2taxes[character.user][1]:
             user2taxes[character.user][1] = total
             user2taxes[character.user][2] = character
+        credits = character.get_lifetime_credits()
+        user2taxes[character.user][0] -= credits
 
     return user2taxes
 
@@ -60,11 +62,12 @@ def notify_taxes_due(self):
     user2taxes = calctaxes()
 
     for u in user2taxes.keys():
-        title = "Taxes are due!"
-        message = "Please pay {:,.2f} ISK or you will be charged interest!".format(
-            user2taxes[u][0]
-        )
-        notify(user=u, title=title, message=message, level="INFO")
+        if user2taxes[u][0] > 0.01:
+            title = "Taxes are due!"
+            message = "Please pay {:,.2f} ISK or you will be charged interest!".format(
+                user2taxes[u][0]
+            )
+            notify(user=u, title=title, message=message, level="INFO")
 
 
 @shared_task(**{**TASK_DEFAULT_KWARGS, **{"bind": True}})
@@ -73,14 +76,18 @@ def apply_interest(self):
     user2taxes = calctaxes()
 
     for u in user2taxes.keys():
+        if user2taxes[u][0] <= 0.01:
+            continue
         interest = round(user2taxes[u][0] * settings.interest_rate / 100.0, 2)
-        user2taxes[u][2].give_credit(-1.0 * interest)
-
-        title = "Taxes are overdue!"
-        message = "An interest of {:,.2f} ISK has been charged for late taxes.".format(
-            interest
-        )
-        notify(user=u, title=title, message=message, level="WARN")
+        if interest > 0.01:
+            user2taxes[u][2].give_credit(-1.0 * interest)
+            title = "Taxes are overdue!"
+            message = (
+                "An interest of {:,.2f} ISK has been charged for late taxes.".format(
+                    interest
+                )
+            )
+            notify(user=u, title=title, message=message, level="WARN")
 
 
 @shared_task(**{**TASK_DEFAULT_KWARGS, **{"bind": True}})

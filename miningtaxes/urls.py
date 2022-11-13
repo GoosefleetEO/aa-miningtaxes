@@ -40,6 +40,8 @@ urlpatterns = [
         views.all_tax_credits,
         name="all_tax_credits",
     ),
+    path("ore_prices", views.ore_prices, name="ore_prices"),
+    path("ore_prices_json", views.ore_prices_json, name="ore_prices_json"),
     path("leaderboards", views.leaderboards, name="leaderboards"),
     path("admin/", views.admin_launcher, name="admin_launcher"),
     path("admin/tables", views.admin_tables, name="admin_tables"),

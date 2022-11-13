@@ -26,12 +26,15 @@ from app_utils.views import bootstrap_icon_plus_name_html
 
 from . import __title__, tasks
 from .forms import SettingsForm
+from .helpers import PriceGroups
 from .models import (
     AdminCharacter,
     AdminMiningCorpLedgerEntry,
     AdminMiningObsLog,
     Character,
+    OrePrices,
     Settings,
+    get_tax,
     ore_calc_prices,
 )
 
@@ -211,6 +214,41 @@ def admin_tables(request):
         "page_title": "Admin Tables",
     }
     return render(request, "miningtaxes/admin_tables.html", context)
+
+
+@login_required
+@permission_required("miningtaxes.basic_access")
+def ore_prices(request):
+    return render(request, "miningtaxes/ore_prices.html", {})
+
+
+@login_required
+@permission_required("miningtaxes.basic_access")
+def ore_prices_json(request):
+    data = []
+    pg = PriceGroups()
+    for ore in OrePrices.objects.all():
+        if "Compressed" in ore.eve_type.name:
+            continue
+        if ore.eve_type.eve_group_id not in pg.taxgroups:
+            continue
+        (raw, refined, taxed) = ore_calc_prices(ore.eve_type, 1000)
+        tax = taxed * get_tax(ore.eve_type)
+        tax_rate = "{0:.0%}".format(get_tax(ore.eve_type))
+        group = pg.taxgroups[ore.eve_type.eve_group_id]
+        data.append(
+            {
+                "group": group,
+                "name": ore.eve_type.name,
+                "raw": raw,
+                "refined": refined,
+                "taxed": taxed,
+                "tax_rate": tax_rate,
+                "tax": tax,
+            }
+        )
+
+    return JsonResponse({"data": data})
 
 
 @login_required
