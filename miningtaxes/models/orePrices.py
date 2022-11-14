@@ -32,13 +32,14 @@ def ore_calc_prices(eve_type, q):
         return q * ore.raw_price, q * ore.refined_price, q * ore.taxed_price
     except OrePrices.DoesNotExist:
         pass
-    raw_price = q * get_price(eve_type)
+    quantity = q
+    raw_price = quantity * get_price(eve_type)
     materials = EveTypeMaterial.objects.filter(
         eve_type_id=eve_type.id
     ).prefetch_related("eve_type")
     refined_price = 0.0
     for mat in materials:
-        q = MININGTAXES_REFINED_RATE * (mat.q * q) / eve_type.portion_size
+        q = MININGTAXES_REFINED_RATE * (mat.quantity * quantity) / eve_type.portion_size
         refined_price += q * get_price(mat.material_eve_type)
     if refined_price == 0.0:
         refined_price = raw_price
