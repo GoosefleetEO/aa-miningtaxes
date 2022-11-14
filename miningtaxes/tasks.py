@@ -237,6 +237,9 @@ def update_all_prices(self):
         except Error as e:
             logger.error("Error updating prices: %s" % e)
 
+        existing = OrePrices.objects.all()
+        for e in existing:
+            e.calc_prices()
     else:
         logger.error("Price source API is not up! Prices not updated.")
 

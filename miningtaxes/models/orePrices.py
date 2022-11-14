@@ -26,21 +26,9 @@ def get_tax(eve_type):
     return settings.__dict__[group] / 100.0
 
 
-def ore_calc_prices(eve_type, quantity):
-    raw_price = quantity * get_price(eve_type)
-    materials = EveTypeMaterial.objects.filter(
-        eve_type_id=eve_type.id
-    ).prefetch_related("eve_type")
-    refined_price = 0.0
-    for mat in materials:
-        q = MININGTAXES_REFINED_RATE * (mat.quantity * quantity) / eve_type.portion_size
-        refined_price += q * get_price(mat.material_eve_type)
-    if refined_price == 0.0:
-        refined_price = raw_price
-    taxed_value = refined_price
-    if raw_price > taxed_value:
-        taxed_value = raw_price
-    return raw_price, refined_price, taxed_value
+def ore_calc_prices(eve_type, q):
+    ore = OrePrices.objects.get(eve_type=eve_type)
+    return q * ore.raw_price, q * ore.refined_price, q * ore.taxed_price
 
 
 def get_price(eve_type):
@@ -73,4 +61,23 @@ class OrePrices(models.Model):
     )
     buy = models.FloatField()
     sell = models.FloatField()
+    raw_price = models.FloatField(default=0.0)
+    refined_price = models.FloatField(default=0.0)
+    taxed_price = models.FloatField(default=0.0)
     updated = models.DateTimeField()
+
+    def calc_prices(self):
+        self.raw_price = self.buy
+        materials = EveTypeMaterial.objects.filter(
+            eve_type_id=self.eve_type.id
+        ).prefetch_related("eve_type")
+        self.refined_price = 0.0
+        for mat in materials:
+            q = MININGTAXES_REFINED_RATE * mat.quantity / self.eve_type.portion_size
+            self.refined_price += q * get_price(mat.material_eve_type)
+        if self.refined_price == 0.0:
+            self.refined_price = self.raw_price
+        self.taxed_price = self.refined_price
+        if self.raw_price > self.taxed_price:
+            self.taxed_price = self.raw_price
+        self.save()

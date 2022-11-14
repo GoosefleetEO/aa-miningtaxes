@@ -19,7 +19,6 @@
                     <th>{% translate 'Ore' %}</th>
                     <th>{% translate 'Raw' %}</th>
                     <th>{% translate 'Refined' %}</th>
-                    <th>{% translate 'Taxed' %}</th>
                     <th>{% translate 'Tax Rate' %}</th>
                     <th>{% translate 'Taxes' %}</th>
                 </tr>
@@ -61,17 +60,13 @@ $(document).ready(function () {
                     data: 'refined',
                     render: $.fn.dataTable.render.number(',', '.', 2)
                 },
-                {
-                    data: 'taxed',
-                    render: $.fn.dataTable.render.number(',', '.', 2)
-                },
                 { data: 'tax_rate', },
                 {
                     data: 'tax',
                     render: $.fn.dataTable.render.number(',', '.', 2)
                 },
             ],
-            order: [[6, "desc"]],
+            order: [[5, "desc"]],
         });
 });
 {% endblock %}

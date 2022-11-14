@@ -34,7 +34,6 @@ from .models import (
     Character,
     OrePrices,
     Settings,
-    get_tax,
     ore_calc_prices,
 )
 
@@ -225,6 +224,7 @@ def ore_prices(request):
 @login_required
 @permission_required("miningtaxes.basic_access")
 def ore_prices_json(request):
+    settings = Settings.load()
     data = []
     pg = PriceGroups()
     for ore in OrePrices.objects.all():
@@ -232,9 +232,14 @@ def ore_prices_json(request):
             continue
         if ore.eve_type.eve_group_id not in pg.taxgroups:
             continue
-        (raw, refined, taxed) = ore_calc_prices(ore.eve_type, 1000)
-        tax = taxed * get_tax(ore.eve_type)
-        tax_rate = "{0:.0%}".format(get_tax(ore.eve_type))
+        raw = 1000.0 * ore.raw_price
+        refined = 1000.0 * ore.refined_price
+        taxed = 1000.0 * ore.taxed_price
+        group = "tax_" + pg.taxgroups[ore.eve_type.eve_group_id]
+        tax_rate = settings.__dict__[group] / 100.0
+
+        tax = taxed * tax_rate
+        tax_rate = "{0:.0%}".format(tax_rate)
         group = pg.taxgroups[ore.eve_type.eve_group_id]
         data.append(
             {
@@ -334,21 +339,43 @@ def admin_corp_ledger(request):
     return JsonResponse({"data": data})
 
 
+def characterize(char):
+    eve_char = None
+    category = None
+    name = None
+    try:
+        eve_char = EveCharacter.objects.get(character_id=char)
+    except EveCharacter.DoesNotExist:
+        name = f"<a href='https://evewho.com/character/{char}'>{char}</a>"
+        category = "unknown"
+        pass
+    if eve_char is not None:
+        try:
+            character = eve_char.miningtaxes_character
+            name = character.main_character.character_name
+            category = "found"
+        except AttributeError:
+            name = eve_char.character_name
+            category = "unregistered"
+            pass
+    return name, category
+
+
 @login_required
 @permission_required("miningtaxes.auditor_access")
 def admin_corp_mining_history(request):
     obs = AdminMiningObsLog.objects.all().order_by("-date")
+    cache = {}
     data = []
     unknown_chars = {}
     unregistered_chars = {}
     for o in obs:
         char = o.miner_id
-        eve_char = None
-        name = None
-        try:
-            eve_char = EveCharacter.objects.get(character_id=char)
-        except EveCharacter.DoesNotExist:
-            name = f"<a href='https://evewho.com/character/{char}'>{char}</a>"
+        if char not in cache:
+            cache[char] = characterize(char)
+        (name, category) = cache[char]
+
+        if category == "unknown":
             if name not in unknown_chars:
                 unknown_chars[name] = [0, 0.0, None]
             unknown_chars[name][0] += o.quantity
@@ -356,29 +383,17 @@ def admin_corp_mining_history(request):
             unknown_chars[name][1] += value
             if unknown_chars[name][2] is None or unknown_chars[name][2] < o.date:
                 unknown_chars[name][2] = o.date
-            pass
-        if eve_char is not None:
-            try:
-                character = eve_char.miningtaxes_character
-                name = character.main_character.character_name
-            except AttributeError:
-                char_name = eve_char.character_name
-                name = char_name
-                # usermain = (
-                #    eve_char.character_ownership.user.profile.main_character.character_name
-                # )
-                # name = f"{char_name} ({usermain})"
-                if name not in unregistered_chars:
-                    unregistered_chars[name] = [0, 0.0, None]
-                unregistered_chars[name][0] += o.quantity
-                (_, _, value) = ore_calc_prices(o.eve_type, o.quantity)
-                unregistered_chars[name][1] += value
-                if (
-                    unregistered_chars[name][2] is None
-                    or unregistered_chars[name][2] < o.date
-                ):
-                    unregistered_chars[name][2] = o.date
-                pass
+        elif category == "unregistered":
+            if name not in unregistered_chars:
+                unregistered_chars[name] = [0, 0.0, None]
+            unregistered_chars[name][0] += o.quantity
+            (_, _, value) = ore_calc_prices(o.eve_type, o.quantity)
+            unregistered_chars[name][1] += value
+            if (
+                unregistered_chars[name][2] is None
+                or unregistered_chars[name][2] < o.date
+            ):
+                unregistered_chars[name][2] = o.date
         data.append(
             {
                 "date": o.date,
