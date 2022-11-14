@@ -27,8 +27,25 @@ def get_tax(eve_type):
 
 
 def ore_calc_prices(eve_type, q):
-    ore = OrePrices.objects.get(eve_type=eve_type)
-    return q * ore.raw_price, q * ore.refined_price, q * ore.taxed_price
+    try:
+        ore = OrePrices.objects.get(eve_type=eve_type)
+        return q * ore.raw_price, q * ore.refined_price, q * ore.taxed_price
+    except OrePrices.DoesNotExist:
+        pass
+    raw_price = q * get_price(eve_type)
+    materials = EveTypeMaterial.objects.filter(
+        eve_type_id=eve_type.id
+    ).prefetch_related("eve_type")
+    refined_price = 0.0
+    for mat in materials:
+        q = MININGTAXES_REFINED_RATE * (mat.q * q) / eve_type.portion_size
+        refined_price += q * get_price(mat.material_eve_type)
+    if refined_price == 0.0:
+        refined_price = raw_price
+    taxed_value = refined_price
+    if raw_price > taxed_value:
+        taxed_value = raw_price
+    return raw_price, refined_price, taxed_value
 
 
 def get_price(eve_type):
