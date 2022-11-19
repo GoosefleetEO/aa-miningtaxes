@@ -1,0 +1,43 @@
+{% extends 'miningtaxes/base.html' %}
+{% load i18n %}
+{% load static %}
+{% load humanize %}
+{% load evelinks %}
+
+{% block details %}
+    <div class="panel panel-default">
+        <div class="panel-heading" style="display:flex;">
+		<h3 class="panel-title">Frequently asked questions</h3>
+        </div>
+        <div class="panel-body">
+		<h4>How do I pay my taxes?</h4>
+		<ol>
+			<li>Open your character window in game and click on your corp.</li>
+			<li>Click on the three dots on the upper right on the information screen about your corp: <br/>
+				<img src="{% static 'miningtaxes/images/faq1.png' %}"/>
+			</li>
+			<li>Select 'Give Money': <br/>
+				<img src="{% static 'miningtaxes/images/faq2.png' %}"/>
+			</li>
+			<li>Enter the appropriate amount and the phrase '{{ phrase }}' without the quotes for the reason: <br/>
+				<img src="{% static 'miningtaxes/images/faq3.png' %}"/>
+			</li>
+		</ol>
+
+    </div>
+	</div>
+    </div>
+
+{% endblock details %}
+
+{% block extra_javascript %}
+{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'miningtaxes/css/global.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'miningtaxes/css/miningtaxes.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'miningtaxes/css/launcher.css' %}" type="text/css">
+{% endblock %}
+
+{% block extra_script %}
+{% endblock %}

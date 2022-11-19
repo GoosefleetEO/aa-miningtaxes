@@ -258,6 +258,14 @@ def ore_prices_json(request):
 
 @login_required
 @permission_required("miningtaxes.basic_access")
+def faq(request):
+    settings = Settings.load()
+    context = {"phrase": settings.phrase}
+    return render(request, "miningtaxes/faq.html", context)
+
+
+@login_required
+@permission_required("miningtaxes.basic_access")
 def index(request):
     characters = Character.objects.owned_by_user(request.user)
     if len(characters) == 0:

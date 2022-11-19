@@ -23,9 +23,14 @@
 	</div>
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav">
-	        <li class="{% navactive request 'miningtaxes:launcher' %}">
+	        <li class="{% navactive request 'miningtaxes:ore_prices' %}">
                     <a href="{% url 'miningtaxes:ore_prices' %}">
                         {% translate 'Current Ore Prices' %}
+                    </a>
+                </li>
+	        <li class="{% navactive request 'miningtaxes:faq' %}">
+                    <a href="{% url 'miningtaxes:faq' %}">
+                        {% translate 'FAQ' %}
                     </a>
                 </li>
 	        <li class="{% navactive request 'miningtaxes:launcher' %}">
