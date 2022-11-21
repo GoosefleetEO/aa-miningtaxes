@@ -26,10 +26,12 @@ Credit to AA's [memberaudit](https://gitlab.com/ErikKalkoken/aa-memberaudit) and
 
 ## Installation instructions
 
-- Install the usual way with migrations, etc.
-- `python manage.py miningtaxes_preload_prices`
+- Install using pip: `pip install git+https://gitlab.com/arctiru/aa-miningtaxes.git`
+- Add `miningtaxes` to `myauth/settings/local.py`
+- Run migrations: `python manage.py migrate`
+- Collect and deploy static assets: `python manage.py collectstatic`
+- Preload pricing information `python manage.py miningtaxes_preload_prices`
 - Set local settings
-
 ```
 MININGTAXES_PRICE_JANICE_API_KEY = "XXXX"
 MININGTAXES_PRICE_METHOD = "Janice"
@@ -58,8 +60,7 @@ CELERYBEAT_SCHEDULE['miningtaxes_apply_interest'] = {
 
 Name | Description | Default
 -- | -- | --
-MININGTAXES_TAX_ONLY_CORP_MOONS | Only tax corporate moons using moon observers as opposed to all moons appearing
-in the personal mining ledgers. | True
+MININGTAXES_TAX_ONLY_CORP_MOONS | Only tax corporate moons using moon observers as opposed to all moons appearing in the personal mining ledgers. | True
 MININGTAXES_UPDATE_LEDGER_STALE | Minutes after which a character's mining ledger is considered stale | 240
 MININGTAXES_REFINED_RATE | Refining rate for ores. | 0.9063
 MININGTAXES_PRICE_METHOD | By default Fuzzwork API will be used for pricing, if this is set to "Janice" then the Janice API will be used. | Fuzzwork
