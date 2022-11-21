@@ -14,6 +14,7 @@
 			</div>
 			<div class="panel-body">
 			    <div id="isk"></div>
+			    <button type="button" class="btn btn-primary" id="csv">Export CSV</button>
 			</div>
 		</div>
 	</div>
@@ -228,6 +229,52 @@ var user_table;
 var unregistered_table;
 var unknown_table;
 var corpmoon_table;
+var csv_data
+
+function exportdata() {
+        exportToCsv("miningtaxes.csv", csv_data);
+}
+
+function exportToCsv(filename, rows) {
+    var processRow = function (row) {
+        var finalVal = '';
+        for (var j = 0; j < row.length; j++) {
+            var innerValue = row[j] === null ? '' : row[j].toString();
+            if (row[j] instanceof Date) {
+                innerValue = row[j].toLocaleString();
+            };
+            var result = innerValue.replace(/"/g, '""');
+            if (result.search(/("|,|\n)/g) >= 0)
+                result = '"' + result + '"';
+            if (j > 0)
+                finalVal += ',';
+            finalVal += result;
+        }
+        return finalVal + '\n';
+    };
+
+    var csvFile = '';
+    for (var i = 0; i < rows.length; i++) {
+        csvFile += processRow(rows[i]);
+    }
+
+    var blob = new Blob([csvFile], { type: 'text/csv;charset=utf-8;' });
+    if (navigator.msSaveBlob) { // IE 10+
+        navigator.msSaveBlob(blob, filename);
+    } else {
+        var link = document.createElement("a");
+        if (link.download !== undefined) { // feature detection
+            // Browsers that support HTML5 download attribute
+            var url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    }
+}
 
 function populate(rowi) {
 	$("#user").html(user_data[rowi].name);
@@ -261,6 +308,8 @@ $(document).ready(function () {
 		for (var i = 0 ; i < d["ydata"].length; i++) {
 			iskchart.load({columns: [d['xdata'], d['ydata'][i]]});
 		}
+		csv_data = d["csv"];
+		$("#csv").click(exportdata);
 		} );
 	$.getJSON("{% url 'miningtaxes:admin_main_json' %}", function (d) {
 		user_data = d["data"];
@@ -270,7 +319,6 @@ $(document).ready(function () {
 		user_table.draw();
 	});
 	$.getJSON("{% url 'miningtaxes:admin_corp_mining_history' %}", function (d) {
-		console.log(d);
 		unregistered_table = $('#unregistered').DataTable({
 		    columns: [
 			{ data: 'name' },
@@ -346,7 +394,6 @@ $(document).ready(function () {
             ],
             order: [[2, "desc"]]
         });
-	      console.log("HERE");
         $('#corp_ledgers').DataTable({
             ajax: {
                 url: "{% url 'miningtaxes:admin_corp_ledger' %}",
@@ -364,7 +411,6 @@ $(document).ready(function () {
             ],
             order: [[0, "desc"]]
         });
-	      console.log("HERE2");
         $('#chars').DataTable({
             ajax: {
                 url: "{% url 'miningtaxes:admin_char_json' %}",

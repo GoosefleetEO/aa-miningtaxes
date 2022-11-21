@@ -480,7 +480,14 @@ def admin_month_json(request):
     for user in ys.keys():
         yout.append([user] + [sum(x) for x in zip(*ys[user])])
 
-    return JsonResponse({"xdata": xs, "ydata": yout})
+    csvdata = [["Month", "Main", "Taxes Total"]]
+    for xi in range(1, len(xs)):
+        month = xs[xi]
+        for userarr in yout:
+            row = [month, userarr[0], userarr[xi]]
+            csvdata.append(row)
+
+    return JsonResponse({"xdata": xs, "ydata": yout, "csv": csvdata})
 
 
 @login_required
