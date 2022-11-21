@@ -8,11 +8,18 @@ An Alliance Auth app for tracking mining activities and charging taxes.
 
 Credit to AA's [memberaudit](https://gitlab.com/ErikKalkoken/aa-memberaudit) and [buyback](https://gitlab.com/paulipa/allianceauth-buyback-program) plugins which formed the foundation for this plugin. 
 
+## Screenshots
+![monthly](screens/screen1.jpg)
+![oreprices](screens/screen2.jpg)
+![leaderboards](screens/screen3.jpg)
+
 ## Features
 
+- Monthly leaderboards to show top miners 
 - Supports multiple corps under one system (Add one character with the accountant role per corp in the admin setup)
-- Supports corp moon mining
--- Able to track when unrecognized characters are mining your corp's private moons.
+- Supports corp moon mining tracking.
+- Able to track when unrecognized characters are mining your corp's private moons.
+- Tax credit system to offset, zero, or award tax credits to a given user. 
 - Support separate tax rates for Regular Ore, Mercoxit, Gas, Ice, R64, R32, R16, R8, and R4.
 - Tracks tax payments into the corp master wallet filtering with a user defined phrase. 
 - Set a monthly interest rate that penalizes for unpaid tax balances. 
@@ -26,10 +33,12 @@ Credit to AA's [memberaudit](https://gitlab.com/ErikKalkoken/aa-memberaudit) and
 
 ## Installation instructions
 
-- Install the usual way with migrations, etc.
-- `python manage.py miningtaxes_preload_prices`
+- Install using pip: `pip install git+https://gitlab.com/arctiru/aa-miningtaxes.git`
+- Add `miningtaxes` to `myauth/settings/local.py`
+- Run migrations: `python manage.py migrate`
+- Collect and deploy static assets: `python manage.py collectstatic`
+- Preload pricing information `python manage.py miningtaxes_preload_prices`
 - Set local settings
-
 ```
 MININGTAXES_PRICE_JANICE_API_KEY = "XXXX"
 MININGTAXES_PRICE_METHOD = "Janice"
@@ -58,8 +67,7 @@ CELERYBEAT_SCHEDULE['miningtaxes_apply_interest'] = {
 
 Name | Description | Default
 -- | -- | --
-MININGTAXES_TAX_ONLY_CORP_MOONS | Only tax corporate moons using moon observers as opposed to all moons appearing
-in the personal mining ledgers. | True
+MININGTAXES_TAX_ONLY_CORP_MOONS | Only tax corporate moons using moon observers as opposed to all moons appearing in the personal mining ledgers. | True
 MININGTAXES_UPDATE_LEDGER_STALE | Minutes after which a character's mining ledger is considered stale | 240
 MININGTAXES_REFINED_RATE | Refining rate for ores. | 0.9063
 MININGTAXES_PRICE_METHOD | By default Fuzzwork API will be used for pricing, if this is set to "Janice" then the Janice API will be used. | Fuzzwork
