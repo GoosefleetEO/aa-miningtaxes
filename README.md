@@ -13,6 +13,7 @@ Credit to AA's [memberaudit](https://gitlab.com/ErikKalkoken/aa-memberaudit) and
 - Supports multiple corps under one system (Add one character with the accountant role per corp in the admin setup)
 - Supports corp moon mining tracking.
 - Able to track when unrecognized characters are mining your corp's private moons.
+- Tax credit system to offset, zero, or award tax credits to a given user. 
 - Support separate tax rates for Regular Ore, Mercoxit, Gas, Ice, R64, R32, R16, R8, and R4.
 - Tracks tax payments into the corp master wallet filtering with a user defined phrase. 
 - Set a monthly interest rate that penalizes for unpaid tax balances. 
