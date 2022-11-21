@@ -8,8 +8,14 @@ An Alliance Auth app for tracking mining activities and charging taxes.
 
 Credit to AA's [memberaudit](https://gitlab.com/ErikKalkoken/aa-memberaudit) and [buyback](https://gitlab.com/paulipa/allianceauth-buyback-program) plugins which formed the foundation for this plugin. 
 
+## Screenshots
+![monthly](screens/screen1.jpg)
+![oreprices](screens/screen2.jpg)
+![leaderboards](screens/screen3.jpg)
+
 ## Features
 
+- Monthly leaderboards to show top miners 
 - Supports multiple corps under one system (Add one character with the accountant role per corp in the admin setup)
 - Supports corp moon mining tracking.
 - Able to track when unrecognized characters are mining your corp's private moons.
