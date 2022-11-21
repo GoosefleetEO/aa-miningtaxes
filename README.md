@@ -53,3 +53,26 @@ CELERYBEAT_SCHEDULE['miningtaxes_apply_interest'] = {
 ```
 - Navigate to the admin panel and setup the accountants (1 per corp)
 
+## Local settings
+
+
+Name | Description | Default
+-- | -- | --
+MININGTAXES_TAX_ONLY_CORP_MOONS | Only tax corporate moons using moon observers as opposed to all moons appearing
+in the personal mining ledgers. | True
+MININGTAXES_UPDATE_LEDGER_STALE | Minutes after which a character's mining ledger is considered stale | 240
+MININGTAXES_REFINED_RATE | Refining rate for ores. | 0.9063
+MININGTAXES_PRICE_METHOD | By default Fuzzwork API will be used for pricing, if this is set to "Janice" then the Janice API will be used. | Fuzzwork
+MININGTAXES_PRICE_JANICE_API_KEY | The API key to access Janice API. |
+MININGTAXES_PRICE_SOURCE_ID | Station ID for fetching base prices. Supports IDs listed on [Fuzzworks API](https://market.fuzzwork.co.uk/api/). Does not work with Janice API!| 60003760
+
+
+## Permissions
+
+Name | Purpose | Example Target Audience
+-- | -- | --
+basic_access | Can access this app and see own tax information, current ore prices, and FAQ. | Member State
+auditor_access | Can view everyone's tax information and see statistics on taxes. | Auditors
+admin_access | Can set tax rate and add characters with the accountant role to pull information from the corp Master Wallet and the corp moons. | Leadership
+
+
