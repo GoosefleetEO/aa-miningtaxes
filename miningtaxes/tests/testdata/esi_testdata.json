@@ -1,0 +1,130 @@
+{
+    "Industry": {
+        "get_characters_character_id_mining": {
+            "1001": [{
+                "solar_system_id": 30002537,
+		"date": "2018-03-10T16:31:32Z",
+		"quantity": 3333,
+		"type_id": 45511
+	    },
+            {
+                "solar_system_id": 30002537,
+		"date": "2018-03-10T16:31:32Z",
+		"quantity": 4333,
+		"type_id": 62586
+	    } ]
+        },
+	"get_corporation_corporation_id_mining_observers": {
+            "2001": [{
+                    "last_updated": "2018-03-10T16:31:32Z",
+                    "observer_id": 123456789,
+		    "observer_type": "structure"
+	    }]
+	},
+	"get_corporation_corporation_id_mining_observers_observer_id": {
+		"2001": {"123456789": [
+			{
+				"character_id" : 1001,
+				"last_updated": "2018-03-10T16:31:32Z",
+				"quantity": 100,
+				"recorded_corporation_id": 2001,
+				"type_id": 45511
+			}
+		]
+		}
+	}
+    },
+    "Universe": {
+        "get_universe_stations_station_id": {
+            "60003760": {
+                "name": "Jita IV - Moon 4 - Caldari Navy Assembly Plant",
+                "system_id": 30000142,
+                "type_id": 52678,
+                "owner": 2002
+            }
+        },
+        "get_universe_structures_structure_id": {
+            "123456789": {
+                "owner_id": 2001,
+                "name": "Amamake - Test Structure Alpha",
+                "position": {
+                    "x": 55028384780.0,
+                    "y": 7310316270.0,
+                    "z": -163686684205.0
+                },
+                "solar_system_id": 30002537,
+                "type_id": 35832
+            },
+            "1000000000001": {
+                "owner_id": 2001,
+                "name": "Amamake - Test Structure Alpha",
+                "position": {
+                    "x": 55028384780.0,
+                    "y": 7310316270.0,
+                    "z": -163686684205.0
+                },
+                "solar_system_id": 30002537,
+                "type_id": 35832
+            },
+            "1000000000002": {
+                "owner_id": 2001,
+                "name": "Amamake - Test Structure Bravo",
+                "position": {
+                    "x": -2518743930339.066,
+                    "y": -130157937025.56424,
+                    "z": -442026427345.6355
+                },
+                "solar_system_id": 30002537,
+                "type_id": 35835
+            }
+        }
+    },
+    "Wallet": {
+	"get_corporations_corporation_id_wallets_division_journal": {
+		"2001": {
+			"1": [ {
+				"amount": 987654321,
+				"date": "2018-02-23T14:31:32Z",
+			        "description": "Player donation",
+				"id": 12345,
+				"ref_type": "player_donation",
+				"first_party_id":1001,
+				"reason": ""
+			}]
+		}
+
+	},
+        "get_characters_character_id_wallet": {
+            "1001": 123456789
+        },
+        "get_characters_character_id_wallet_journal": {
+            "1001": [
+                {
+                    "amount": -100000,
+                    "balance": 500000.4316,
+                    "context_id": 4,
+                    "context_id_type": "contract_id",
+                    "date": "2018-02-23T14:31:32Z",
+                    "description": "Contract Deposit",
+                    "first_party_id": 2001,
+                    "id": 89,
+                    "reason": "just for fun",
+                    "ref_type": "contract_deposit",
+                    "second_party_id": 2002
+                },
+                {
+                    "amount": -500000,
+                    "balance": 600000.4316,
+                    "context_id": null,
+                    "context_id_type": null,
+                    "date": "2018-03-10T16:31:32Z",
+                    "description": "Dank mission reward",
+                    "first_party_id": 2101,
+                    "id": 91,
+                    "ref_type": "agent_mission_time_bonus_reward_corporation_tax",
+                    "second_party_id": 2001
+                }
+            ]
+        }
+    }
+}
