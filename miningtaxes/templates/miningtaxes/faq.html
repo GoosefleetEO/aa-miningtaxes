@@ -14,13 +14,16 @@
 		<ol>
 			<li>Open your character window in game and click on your corp.</li>
 			<li>Click on the three dots on the upper right on the information screen about your corp: <br/>
-				<img src="{% static 'miningtaxes/images/faq1.png' %}"/>
+				<div class='imgcontainer'> <img src="{% static 'miningtaxes/images/faq1.png' %}"/> </div>
 			</li>
 			<li>Select 'Give Money': <br/>
-				<img src="{% static 'miningtaxes/images/faq2.png' %}"/>
+				<div class='imgcontainer'> <img src="{% static 'miningtaxes/images/faq2.png' %}"/> </div>
 			</li>
 			<li>Enter the appropriate amount and the phrase '{{ phrase }}' without the quotes for the reason: <br/>
+				<div class='imgcontainer'>
 				<img src="{% static 'miningtaxes/images/faq3.png' %}"/>
+				<div class='text'> {{ phrase }} </div>
+				</div>
 			</li>
 		</ol>
 
@@ -37,6 +40,22 @@
     <link rel="stylesheet" href="{% static 'miningtaxes/css/global.css' %}" type="text/css">
     <link rel="stylesheet" href="{% static 'miningtaxes/css/miningtaxes.css' %}" type="text/css">
     <link rel="stylesheet" href="{% static 'miningtaxes/css/launcher.css' %}" type="text/css">
+<style>
+.imgcontainer {
+  position: relative;
+  left: 100px;
+  text-align: left;
+  color: white;
+}
+.text {
+  position: absolute;
+  top: 278px;
+  left: 46px;
+  font-size: 32px;
+  color:red;
+  font-style: bold;
+}
+</style>
 {% endblock %}
 
 {% block extra_script %}
