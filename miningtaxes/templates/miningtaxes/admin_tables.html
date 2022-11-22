@@ -293,8 +293,9 @@ $(document).ready(function () {
 			},
 			axis: {
 				x: {
+					padding: { right: 5000*60*60*12 },
 					type: "timeseries",
-					tick: { format: "%Y-%m" }
+					tick: { format: "%Y-%m", rotate: 45 }
 				},
 				y: {
 					tick: { format: function(x) {
