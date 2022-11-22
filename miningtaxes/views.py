@@ -203,7 +203,7 @@ def admin_tables(request):
                     suitable = c
                     break
                 suitable = c
-            suitable.give_credit(isk)
+            suitable.give_credit(isk, "credit")
             messages.warning(
                 request,
                 format_html("Tax credit given!"),
@@ -546,6 +546,7 @@ def all_tax_credits(request, user_pk: int):
                     size=16,
                 ),
                 "amount": x.credit,
+                "reason": x.credit_type,
             },
             c.tax_credits.all(),
         )

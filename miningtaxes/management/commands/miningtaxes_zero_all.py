@@ -11,4 +11,4 @@ class Command(BaseCommand):
         for char in alltoons:
             balance = char.get_lifetime_taxes() - char.get_lifetime_credits()
             if balance > 0:
-                char.give_credit(balance)
+                char.give_credit(balance, "credit")

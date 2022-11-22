@@ -79,6 +79,7 @@
 					    <th>{% translate 'Date' %}</th>
 					    <th>{% translate 'Character' %}</th>
 					    <th>{% translate 'Amount (ISK)' %}</th>
+					    <th>{% translate 'Reason' %}</th>
 					</tr>
 				    </thead>
 				    <tbody></tbody>
@@ -182,6 +183,7 @@ function render_lb() {
                     data: 'amount',
                     render: $.fn.dataTable.render.number(',', '.', 2)
                 },
+                { data: 'reason' },
             ],
             order: [[0, "desc"]],
         });

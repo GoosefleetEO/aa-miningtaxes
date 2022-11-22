@@ -291,8 +291,10 @@ class Character(CharacterAbstract):
             return None
         return dt.date
 
-    def give_credit(self, isk):
-        self.tax_credits.create(date=now(), credit=isk)
+    def give_credit(self, isk, credit_type):
+        if credit_type not in ("credit", "paid", "interest"):
+            raise Exception("Unknown credit type")
+        self.tax_credits.create(date=now(), credit=isk, credit_type=credit_type)
 
 
 class CharacterTaxCredits(models.Model):
@@ -301,6 +303,7 @@ class CharacterTaxCredits(models.Model):
     )
     date = models.DateTimeField(db_index=True)
     credit = models.FloatField(default=0.0)
+    credit_type = models.CharField(max_length=32, default="")
 
     class Meta:
         default_permissions = ()

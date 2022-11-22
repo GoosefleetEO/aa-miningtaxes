@@ -73,7 +73,7 @@ class TestCharacter(NoSocketsTestCase):
     def test_tax_credits(self):
         character_1001 = create_miningtaxes_character(1001)
         n = now()
-        character_1001.give_credit(1234)
+        character_1001.give_credit(1234, "paid")
         last = character_1001.last_paid()
         month_n = datetime.date(year=n.year, month=n.month, day=1)
 

@@ -80,7 +80,7 @@ def apply_interest(self):
             continue
         interest = round(user2taxes[u][0] * settings.interest_rate / 100.0, 2)
         if interest > 0.01:
-            user2taxes[u][2].give_credit(-1.0 * interest)
+            user2taxes[u][2].give_credit(-1.0 * interest, "interest")
             title = "Taxes are overdue!"
             message = (
                 "An interest of {:,.2f} ISK has been charged for late taxes.".format(
@@ -299,7 +299,9 @@ def add_tax_credits():
                 pass
             if payee is None:
                 continue
-            payee.tax_credits.update_or_create(date=entry.date, credit=entry.amount)
+            payee.tax_credits.update_or_create(
+                date=entry.date, credit=entry.amount, credit_type="paid"
+            )
 
 
 def add_tax_credits_by_char(character):
@@ -310,7 +312,9 @@ def add_tax_credits_by_char(character):
     for entry in entries:
         if settings.phrase != "" and settings.phrase not in entry.reason:
             continue
-        character.tax_credits.update_or_create(date=entry.date, credit=entry.amount)
+        character.tax_credits.update_or_create(
+            date=entry.date, credit=entry.amount, credit_type="paid"
+        )
 
 
 def add_corp_moon_taxes():
