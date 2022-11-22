@@ -21,6 +21,7 @@
                     <th>{% translate 'Refined' %}</th>
                     <th>{% translate 'Tax Rate' %}</th>
                     <th>{% translate 'Taxes' %}</th>
+                    <th>{% translate 'After Taxes' %}</th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -63,6 +64,10 @@ $(document).ready(function () {
                 { data: 'tax_rate', },
                 {
                     data: 'tax',
+                    render: $.fn.dataTable.render.number(',', '.', 2)
+                },
+                {
+                    data: 'remaining',
                     render: $.fn.dataTable.render.number(',', '.', 2)
                 },
             ],

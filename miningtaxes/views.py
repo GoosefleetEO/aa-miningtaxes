@@ -239,6 +239,7 @@ def ore_prices_json(request):
         tax_rate = settings.__dict__[group] / 100.0
 
         tax = taxed * tax_rate
+        remaining = taxed - tax
         tax_rate = "{0:.0%}".format(tax_rate)
         group = pg.taxgroups[ore.eve_type.eve_group_id]
         data.append(
@@ -249,6 +250,7 @@ def ore_prices_json(request):
                 "refined": refined,
                 "taxed": taxed,
                 "tax_rate": tax_rate,
+                "remaining": remaining,
                 "tax": tax,
             }
         )
