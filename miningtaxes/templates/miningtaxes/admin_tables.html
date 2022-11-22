@@ -10,11 +10,26 @@
 	<div class="col-md-12">
     		<div class="panel panel-default">
 			<div class="panel-heading" style="display:flex;">
+			    <h3 class="panel-title">Overall Monthly Tax Revenue</h3>
+			</div>
+			<div class="panel-body">
+			    <div id="taxrevenue"></div>
+			    <button type="button" class="btn-sm btn-primary pull-right" id="taxcsv">Export CSV</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+<div class="row">
+	<div class="col-md-12">
+    		<div class="panel panel-default">
+			<div class="panel-heading" style="display:flex;">
 			    <h3 class="panel-title">Monthly Taxes by Users</h3>
 			</div>
 			<div class="panel-body">
 			    <div id="isk"></div>
-			    <button type="button" class="btn btn-primary" id="csv">Export CSV</button>
+			    <button type="button" class="btn-sm btn-primary pull-right" id="csv">Export CSV</button>
 			</div>
 		</div>
 	</div>
@@ -229,10 +244,15 @@ var user_table;
 var unregistered_table;
 var unknown_table;
 var corpmoon_table;
-var csv_data
+var csv_data;
+var tax_csv_data;
+
+function exporttaxdata() {
+        exportToCsv("miningtaxes-revenue.csv", tax_csv_data);
+}
 
 function exportdata() {
-        exportToCsv("miningtaxes.csv", csv_data);
+        exportToCsv("miningtaxes-usertaxes.csv", csv_data);
 }
 
 function exportToCsv(filename, rows) {
@@ -284,6 +304,39 @@ function populate(rowi) {
 }
 
 $(document).ready(function () {
+	$.getJSON("{% url 'miningtaxes:admin_tax_revenue_json' %}", function (d) {
+		var taxrevenue = bb.generate({
+			data: {
+				x: "x",
+				columns: [],
+				axes: { isk: "y"},
+				type: "bar",
+			},
+			bar: {
+			    width: {
+			      ratio: 0.5
+			    }
+			},
+		        legend: { show: false },
+			axis: {
+				x: {
+					padding: { right: 5000*60*60*12 },
+					type: "timeseries",
+					tick: { format: "%Y-%m", rotate: 45 }
+				},
+				y: {
+					tick: { format: function(x) {
+						return d3.format(",")(x);
+					} },
+					label: "ISK"
+				},
+			},
+			bindto:"#taxrevenue"
+		});
+		taxrevenue.load({columns: [d['xdata'], d['ydata']]});
+		tax_csv_data = d["csv"];
+		$("#taxcsv").click(exporttaxdata);
+		} );
 	$.getJSON("{% url 'miningtaxes:admin_month_json' %}", function (d) {
 		var iskchart = bb.generate({
 			data: {

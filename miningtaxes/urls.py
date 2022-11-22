@@ -48,6 +48,11 @@ urlpatterns = [
     path("admin/tables", views.admin_tables, name="admin_tables"),
     path("admin_main_json", views.admin_main_json, name="admin_main_json"),
     path("admin_char_json", views.admin_char_json, name="admin_char_json"),
+    path(
+        "admin_tax_revenue_json",
+        views.admin_tax_revenue_json,
+        name="admin_tax_revenue_json",
+    ),
     path("admin_month_json", views.admin_month_json, name="admin_month_json"),
     path(
         "admin_corp_mining_history",

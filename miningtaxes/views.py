@@ -447,6 +447,33 @@ def admin_corp_mining_history(request):
 
 @login_required
 @permission_required("miningtaxes.auditor_access")
+def admin_tax_revenue_json(request):
+    entries = AdminMiningCorpLedgerEntry.objects.all()
+    settings = Settings.load()
+
+    months = {}
+    for e in entries:
+        if settings.phrase != "" and settings.phrase not in e.reason:
+            continue
+        d = dt.date(year=e.date.year, month=e.date.month, day=15)
+        if d not in months:
+            months[d] = 0.0
+        months[d] += e.amount
+
+    xs = list(sorted(months.keys()))
+    ys = list(map(lambda x: months[x], xs))
+    xs = ["x"] + xs
+    ys = ["Revenue"] + ys
+
+    csv_data = [["Month", "Amount (ISK)"]]
+    for i in range(1, len(xs)):
+        csv_data.append([xs[i], ys[i]])
+
+    return JsonResponse({"xdata": xs, "ydata": ys, "csv": csv_data})
+
+
+@login_required
+@permission_required("miningtaxes.auditor_access")
 def admin_month_json(request):
     characters = Character.objects.all()
     monthly = list(map(lambda x: x.get_monthly_taxes(), characters))
