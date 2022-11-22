@@ -84,3 +84,11 @@ auditor_access | Can view everyone's tax information and see statistics on taxes
 admin_access | Can set tax rate and add characters with the accountant role to pull information from the corp Master Wallet and the corp moons. | Leadership
 
 
+## Commands
+
+Name | Description
+-- | --
+miningtaxes_preload_prices | Preload all ores and refined materials from chosen Pricing API (Fuzzworks or Janice).
+miningtaxes_zero_all | Zero the tax balance of ALL characters.
+
+
