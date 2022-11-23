@@ -10,6 +10,11 @@ tx_push:
 tx_pull:
 	tx pull -f
 
+publish:
+	rm -f dist/*
+	python setup.py sdist
+	twine upload dist/*
+
 compilemessages:
 	cd $(package) && \
 	django-admin compilemessages -l en  && \

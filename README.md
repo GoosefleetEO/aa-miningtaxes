@@ -62,6 +62,13 @@ CELERYBEAT_SCHEDULE['miningtaxes_apply_interest'] = {
 ```
 - Navigate to the admin panel and setup the accountants (1 per corp)
 
+## Post-Setup instructions
+
+- After you have setup your accountants (1 per corp) in the Admin Setup panel, invite all the members of your corp to add their characters.
+- If you enable `MININGTAXES_TAX_ONLY_CORP_MOONS`, remember that only moon mining of your corp moons will be taxes and other moons will be ignored.
+- After everyone in the corp has added their characters, consider running to the `miningtaxes_zero_all` command to zero out everyone's taxes to prevent mining activity from the past from being taxed.
+- When a new user joins your corp and adds their character to the plugin, also consider going into the audit tables and providing a tax credit so that it will zero out their past mining activity.
+
 ## Local settings
 
 
