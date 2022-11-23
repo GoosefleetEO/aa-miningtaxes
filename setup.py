@@ -23,13 +23,13 @@ setup(
     long_description_content_type="text/markdown",
     url="https://gitlab.com/arctiru/aa-memberaudit",
     author="Arc Tiru",
-    author_email="john.doe@example.com",
+    author_email="arcturusstl@gmail.com",
     classifiers=[
         "Environment :: Web Environment",
         "Framework :: Django",
         "Framework :: Django :: 3.2",
         "Intended Audience :: Developers",
-        "License :: OSI Approved :: MIT License",  # example license
+        "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3.7",
