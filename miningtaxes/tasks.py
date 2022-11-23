@@ -300,7 +300,7 @@ def add_tax_credits():
             if payee is None:
                 continue
             payee.tax_credits.update_or_create(
-                date=entry.date, credit=entry.amount, credit_type="paid"
+                date=entry.date, credit=entry.amount, defaults={"credit_type": "paid"}
             )
 
 
@@ -313,7 +313,7 @@ def add_tax_credits_by_char(character):
         if settings.phrase != "" and settings.phrase not in entry.reason:
             continue
         character.tax_credits.update_or_create(
-            date=entry.date, credit=entry.amount, credit_type="paid"
+            date=entry.date, credit=entry.amount, defaults={"credit_type": "paid"}
         )
 
 
