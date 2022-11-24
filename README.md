@@ -33,7 +33,7 @@ Credit to AA's [memberaudit](https://gitlab.com/ErikKalkoken/aa-memberaudit) and
 
 ## Installation instructions
 
-- Install using pip: `pip install git+https://gitlab.com/arctiru/aa-miningtaxes.git`
+- Install using pip: `pip install aa-miningtaxes`
 - Add `miningtaxes` to `myauth/settings/local.py`
 - Run migrations: `python manage.py migrate`
 - Collect and deploy static assets: `python manage.py collectstatic`
