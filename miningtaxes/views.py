@@ -468,6 +468,7 @@ def admin_mining_by_sys_json(request):
         ]
     ]
     allgroups = set()
+    tables = {}
 
     for e in entries:
         try:
@@ -494,6 +495,17 @@ def admin_mining_by_sys_json(request):
         except Exception as e:
             logger.error(f"Failed: {e}")
             continue
+
+        month = "%d-%02d" % (e.date.year, e.date.month)
+        if month not in tables:
+            tables[month] = {}
+        if s not in tables[month]:
+            tables[month][s] = {}
+        if group not in tables[month][s]:
+            tables[month][s][group] = {"tax": 0.0, "isk": 0.0}
+
+        tables[month][s][group]["tax"] += e.taxes_owed
+        tables[month][s][group]["isk"] += e.taxed_value
 
         if group not in sys[s]:
             sys[s][group] = {
@@ -548,7 +560,7 @@ def admin_mining_by_sys_json(request):
         ys.append(x)
         anal[a] = ys
 
-    return JsonResponse({"anal": anal, "csv": csv_data})
+    return JsonResponse({"anal": anal, "csv": csv_data, "tables": tables})
 
 
 @login_required

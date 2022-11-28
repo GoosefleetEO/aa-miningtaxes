@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [v1.1.0] - 2022-11-28
+## [v1.1.2] - 2022-11-28
 
 ### Added
 
@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Statistics about average monthly mining activity by system
 - Ability to download CSV with all characters mining ledgers
 - Added information about Janice to README
+- Added table with monthly summary of mining activity by system and ore group.
 
 ### Changed
 
