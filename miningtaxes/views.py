@@ -32,6 +32,7 @@ from .models import (
     AdminMiningCorpLedgerEntry,
     AdminMiningObsLog,
     Character,
+    CharacterMiningLedgerEntry,
     OrePrices,
     Settings,
     ore_calc_prices,
@@ -443,6 +444,106 @@ def admin_corp_mining_history(request):
             "unregistered_data": unregistered_data,
         }
     )
+
+
+@login_required
+@permission_required("miningtaxes.auditor_access")
+def admin_mining_by_sys_json(request):
+    entries = CharacterMiningLedgerEntry.objects.all().prefetch_related(
+        "character", "eve_type", "eve_solar_system"
+    )
+    sys = {}
+    pg = PriceGroups()
+    csv_data = [
+        [
+            "Date",
+            "Sys",
+            "Character",
+            "Main",
+            "Ore",
+            "Group",
+            "Amount",
+            "ISK Value",
+            "Taxed",
+        ]
+    ]
+    allgroups = set()
+
+    for e in entries:
+        s = e.eve_solar_system.name
+        if s not in sys:
+            sys[s] = {}
+
+        group = pg.taxgroups[e.eve_type.eve_group_id]
+        allgroups.add(group)
+
+        csv_data.append(
+            [
+                e.date,
+                s,
+                e.character.eve_character.character_name,
+                e.character.main_character.character_name,
+                e.eve_type.name,
+                group,
+                e.quantity,
+                e.taxed_value,
+                e.taxes_owed,
+            ]
+        )
+        if group not in sys[s]:
+            sys[s][group] = {
+                "first": e.date,
+                "last": e.date,
+                "q": e.quantity,
+                "isk": e.taxed_value,
+                "tax": e.taxes_owed,
+            }
+            continue
+        if e.date < sys[s][group]["first"]:
+            sys[s][group]["first"] = e.date
+        if e.date > sys[s][group]["last"]:
+            sys[s][group]["last"] = e.date
+        sys[s][group]["isk"] += e.taxed_value
+        sys[s][group]["tax"] += e.taxes_owed
+        sys[s][group]["q"] += e.quantity
+
+    # Reformat for billboard and calc stats
+    for s in sys.keys():
+        for g in allgroups:
+            if g not in sys[s]:
+                sys[s][g] = {"isk": 0, "tax": 0, "q": 0}
+                continue
+            # t = (sys[s][g]["last"] - sys[s][g]["first"]).days
+            t = (now().date() - sys[s][g]["first"]).days
+            t /= 365.25 / 12
+            if t < 1:
+                t = 1
+            sys[s][g]["isk"] /= t
+            sys[s][g]["tax"] /= t
+            sys[s][g]["q"] /= t
+
+    anal = {}
+    for a in ("isk", "tax", "q"):
+        x = ["x"]
+        order = sorted(
+            sys.keys(), key=lambda x: (sum(map(lambda y: -sys[x][y][a], allgroups)))
+        )
+        gorder = sorted(
+            allgroups, key=lambda g: sum(map(lambda s: -sys[s][g][a], sys.keys()))
+        )
+        ys = []
+        for g in gorder:
+            ys.append([g])
+        for s in order:
+            x.append(s)
+            for i, g in enumerate(gorder):
+                ys[i].append(sys[s][g][a])
+            if len(x) > 11:
+                break
+        ys.append(x)
+        anal[a] = ys
+
+    return JsonResponse({"anal": anal, "csv": csv_data})
 
 
 @login_required

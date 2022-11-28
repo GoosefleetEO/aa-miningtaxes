@@ -21,7 +21,7 @@ setup(
     description="An Alliance Auth app that tracks and applies taxes for mining",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://gitlab.com/arctiru/aa-memberaudit",
+    url="https://gitlab.com/arctiru/aa-miningtaxes",
     author="Arc Tiru",
     author_email="arcturusstl@gmail.com",
     classifiers=[

@@ -33,6 +33,7 @@ Credit to AA's [memberaudit](https://gitlab.com/ErikKalkoken/aa-memberaudit) and
 
 ## Installation instructions
 
+- If you would like to use [Janice](https://janice.e-351.com/) for pricing information, obtain an API key by following the instructions at the top of the [Swagger documentation](https://janice.e-351.com/api/rest/docs/index.html) and [FAQ](https://janice.e-351.com/about).
 - Install using pip: `pip install git+https://gitlab.com/arctiru/aa-miningtaxes.git`
 - Add `miningtaxes` to `myauth/settings/local.py`
 - Run migrations: `python manage.py migrate`

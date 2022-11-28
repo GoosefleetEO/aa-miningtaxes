@@ -6,6 +6,21 @@
 
 {% block details %}
 
+<div class="dropdown">
+  <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+    Reports
+    <span class="caret"></span>
+  </button>
+  <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+    <li><a href="#" onClick="switchview('#basic')">Basic</a></li>
+    <li><a href="#" onClick="switchview('#sys_stats')">Stats by System</a></li>
+    <li><a href="#" onClick="switchview('#corp_moons')">Corp Moon Audits</a></li>
+  </ul>
+</div>
+<br/>
+
+
+<div id="basic">
 <div class="row">
 	<div class="col-md-12">
     		<div class="panel panel-default">
@@ -145,8 +160,53 @@
 		</div>
 	</div>
 </div>
+</div>
+
+<div id="sys_stats" class='hidden'>
+<div class="row">
+	<div class="col-md-12">
+    		<div class="panel panel-default">
+			<div class="panel-heading" style="display:flex;">
+			    <h3 class="panel-title">Average Monthly ISK by System</h3>
+			</div>
+			<div class="panel-body">
+			    <div id="sys_avg_isk"></div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-md-12">
+    		<div class="panel panel-default">
+			<div class="panel-heading" style="display:flex;">
+			    <h3 class="panel-title">Average Monthly Units of Ore by System</h3>
+			</div>
+			<div class="panel-body">
+			    <div id="sys_avg_q"></div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-md-12">
+    		<div class="panel panel-default">
+			<div class="panel-heading" style="display:flex;">
+			    <h3 class="panel-title">Average Monthly Taxes by System</h3>
+			</div>
+			<div class="panel-body">
+			    <div id="sys_avg_tax"></div>
+			</div>
+		</div>
+	</div>
+</div>
+<br/>
+			    <button type="button" class="btn-sm btn-primary pull-right" id="syscsv">Export All Mining Activity CSV</button>
+</div>
 
 
+<div id="corp_moons" class='hidden'>
 <div class="row">
 	<div class="col-md-6">
     		<div class="panel panel-default">
@@ -218,6 +278,7 @@
 		</div>
 	</div>
 </div>
+</div>
 
 {% endblock details %}
 
@@ -246,6 +307,26 @@ var unknown_table;
 var corpmoon_table;
 var csv_data;
 var tax_csv_data;
+var tax_sys_data;
+var curshown = "#basic";
+var firstdraw = true;
+var sys_stats_data;
+
+function switchview(pane) {
+	if (pane == curshown) { return; }
+	$(curshown).addClass("hidden");
+	$(pane).removeClass("hidden");
+	curshown = pane;
+	if (firstdraw && pane == "#sys_stats") {
+		draw_sys_stats();
+		firstdraw = false;
+	}
+}
+
+function exportsysdata() {
+        exportToCsv("miningtaxes-allactivity.csv", tax_sys_data);
+}
+
 
 function exporttaxdata() {
         exportToCsv("miningtaxes-revenue.csv", tax_csv_data);
@@ -303,7 +384,89 @@ function populate(rowi) {
 	$("#creditbox").val(bal);
 }
 
+function draw_sys_stats() {
+const d = sys_stats_data;
+var isk = bb.generate({
+data: {
+x: "x",
+      columns: [],
+      type: "bar",
+	     },
+	     bar: {
+	     width: {
+	     ratio: 0.5
+	     }
+	     },
+	     axis: {
+	     x: {type: "category"},
+			y: {
+			tick: { format: function(x) {
+			return d3.format(",")(x);
+					  } },
+					  label: "ISK"
+						  },
+						  },
+						  bindto:"#sys_avg_isk"
+							  });
+							  isk.load({columns: d['anal']['isk']});
+
+var isk = bb.generate({
+data: {
+x: "x",
+      columns: [],
+      type: "bar",
+	     },
+	     bar: {
+	     width: {
+	     ratio: 0.5
+	     }
+	     },
+	     axis: {
+	     x: {type: "category"},
+			y: {
+			tick: { format: function(x) {
+			return d3.format(",")(x);
+					  } },
+					  label: "ISK"
+						  },
+						  },
+						  bindto:"#sys_avg_tax"
+							  });
+							  isk.load({columns: d['anal']['tax']});
+
+var isk = bb.generate({
+data: {
+x: "x",
+      columns: [],
+      type: "bar",
+	     },
+	     bar: {
+	     width: {
+	     ratio: 0.5
+	     }
+	     },
+	     axis: {
+	     x: {type: "category"},
+			y: {
+			tick: { format: function(x) {
+			return d3.format(",")(x);
+					  } },
+					  label: "Quantity"
+						  },
+						  },
+						  bindto:"#sys_avg_q"
+							  });
+							  isk.load({columns: d['anal']['q']});
+
+
+tax_sys_data = d["csv"];
+$("#syscsv").click(exportsysdata);
+			 }
+
 $(document).ready(function () {
+	$.getJSON("{% url 'miningtaxes:admin_mining_by_sys_json' %}", function (d) {
+		sys_stats_data = d;
+				} );
 	$.getJSON("{% url 'miningtaxes:admin_tax_revenue_json' %}", function (d) {
 		var taxrevenue = bb.generate({
 			data: {
