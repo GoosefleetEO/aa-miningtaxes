@@ -470,26 +470,31 @@ def admin_mining_by_sys_json(request):
     allgroups = set()
 
     for e in entries:
-        s = e.eve_solar_system.name
-        if s not in sys:
-            sys[s] = {}
+        try:
+            s = e.eve_solar_system.name
+            if s not in sys:
+                sys[s] = {}
 
-        group = pg.taxgroups[e.eve_type.eve_group_id]
-        allgroups.add(group)
+            group = pg.taxgroups[e.eve_type.eve_group_id]
+            allgroups.add(group)
 
-        csv_data.append(
-            [
-                e.date,
-                s,
-                e.character.eve_character.character_name,
-                e.character.main_character.character_name,
-                e.eve_type.name,
-                group,
-                e.quantity,
-                e.taxed_value,
-                e.taxes_owed,
-            ]
-        )
+            csv_data.append(
+                [
+                    e.date,
+                    s,
+                    e.character.eve_character.character_name,
+                    e.character.main_character.character_name,
+                    e.eve_type.name,
+                    group,
+                    e.quantity,
+                    e.taxed_value,
+                    e.taxes_owed,
+                ]
+            )
+        except Exception as e:
+            logger.error(f"Failed: {e}")
+            continue
+
         if group not in sys[s]:
             sys[s][group] = {
                 "first": e.date,

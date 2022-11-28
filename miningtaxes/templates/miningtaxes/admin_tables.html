@@ -465,6 +465,7 @@ $("#syscsv").click(exportsysdata);
 
 $(document).ready(function () {
 	$.getJSON("{% url 'miningtaxes:admin_mining_by_sys_json' %}", function (d) {
+		   console.log(d);
 		sys_stats_data = d;
 				} );
 	$.getJSON("{% url 'miningtaxes:admin_tax_revenue_json' %}", function (d) {
