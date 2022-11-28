@@ -15,18 +15,18 @@ Credit to AA's [memberaudit](https://gitlab.com/ErikKalkoken/aa-memberaudit) and
 
 ## Features
 
-- Monthly leaderboards to show top miners
+- Monthly leaderboards to show top miners.
 - Supports multiple corps under one system (Add one character with the accountant role per corp in the admin setup)
 - Supports corp moon mining tracking.
 - Able to track when unrecognized characters are mining your corp's private moons.
 - Tax credit system to offset, zero, or award tax credits to a given user.
-- Support separate tax rates for Regular Ore, Mercoxit, Gas, Ice, R64, R32, R16, R8, and R4.
+- Supports separate tax rates for Regular Ore, Mercoxit, Gas, Ice, R64, R32, R16, R8, and R4.
 - Tracks tax payments into the corp master wallet filtering with a user defined phrase.
 - Set a monthly interest rate that penalizes for unpaid tax balances.
 - Automatic monthly notifications and monthly interest applied with unpaid balance.
-- Support Fuzzworks and Janice for daily price updates.
-- Support refined price calculation versus raw ore prices (the higher price will be the taxed price).
-- Support multiple mining characters under one user.
+- Supports Fuzzworks and Janice for daily price updates.
+- Supports refined price calculation versus raw ore prices (the higher price will be the taxed price).
+- Supports multiple mining characters under one user.
 - Monthly statistics and detailed tax calculations available to each user and auditor.
 - Provides a current Ore price chart that is updated each day with the latest prices.
 - Export tax information in CSV format.
@@ -34,7 +34,7 @@ Credit to AA's [memberaudit](https://gitlab.com/ErikKalkoken/aa-memberaudit) and
 ## Installation instructions
 
 - If you would like to use [Janice](https://janice.e-351.com/) for pricing information, obtain an API key by following the instructions at the top of the [Swagger documentation](https://janice.e-351.com/api/rest/docs/index.html) and [FAQ](https://janice.e-351.com/about).
-- Install using pip: `pip install git+https://gitlab.com/arctiru/aa-miningtaxes.git`
+- Install using pip: `pip install aa-miningtaxes`
 - Add `miningtaxes` to `myauth/settings/local.py`
 - Run migrations: `python manage.py migrate`
 - Collect and deploy static assets: `python manage.py collectstatic`
