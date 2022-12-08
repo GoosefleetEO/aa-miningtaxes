@@ -939,9 +939,13 @@ def user_mining_ledger_90day(request, user_pk: int) -> JsonResponse:
     for c in characters:
         ledger = c.get_90d_mining()
         for entry in ledger:
-            g = pg.taxgroups[entry.eve_type.eve_group_id]
-            allpgs[g] = [g]
-            v = entry.taxed_value
+            try:
+                g = pg.taxgroups[entry.eve_type.eve_group_id]
+                allpgs[g] = [g]
+                v = entry.taxed_value
+            except Exception as e:
+                logger.warn(f"Unknown entry: {e} - {entry}")
+                continue
             if entry.date not in alldays:
                 alldays[entry.date] = {}
             if g not in alldays[entry.date]:
