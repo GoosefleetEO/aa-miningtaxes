@@ -29,6 +29,11 @@ urlpatterns = [
         views.character_mining_ledger_data,
         name="character_mining_ledger_data",
     ),
+    path(
+        "user_mining_ledger_90day/<int:user_pk>",
+        views.user_mining_ledger_90day,
+        name="user_mining_ledger_90day",
+    ),
     path("user_summary/<int:user_pk>", views.user_summary, name="user_summary"),
     path(
         "summary_month_json/<int:user_pk>",

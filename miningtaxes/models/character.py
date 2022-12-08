@@ -285,6 +285,10 @@ class Character(CharacterAbstract):
             .order_by("month")
         )
 
+    def get_90d_mining(self):
+        b = now().date() - dt.timedelta(days=90)
+        return self.mining_ledger.filter(date__gte=b)
+
     def last_paid(self):
         dt = self.tax_credits.last()
         if dt is None:

@@ -834,20 +834,16 @@ def remove_admin_character(request, character_pk: int) -> HttpResponse:
         ).get(pk=character_pk)
     except Character.DoesNotExist:
         return HttpResponseNotFound(f"Character with pk {character_pk} not found")
-    if character.user and character.user == request.user:
-        character_name = character.eve_character.character_name
 
-        character.delete()
-        messages.success(
-            request,
-            format_html(
-                "Removed character <strong>{}</strong> as requested.", character_name
-            ),
-        )
-    else:
-        return HttpResponseForbidden(
-            f"No permission to remove Character with pk {character_pk}"
-        )
+    character_name = character.eve_character.character_name
+
+    character.delete()
+    messages.success(
+        request,
+        format_html(
+            "Removed character <strong>{}</strong> as requested.", character_name
+        ),
+    )
     return redirect("miningtaxes:admin_launcher")
 
 
@@ -927,3 +923,62 @@ def character_mining_ledger_data(request, character_pk: int) -> JsonResponse:
         for row in qs
     ]
     return JsonResponse({"data": data})
+
+
+@login_required
+@permission_required("memberaudit.basic_access")
+def user_mining_ledger_90day(request, user_pk: int) -> JsonResponse:
+    user = User.objects.get(pk=user_pk)
+    if request.user != user and not request.user.has_perm("miningtaxes.auditor_access"):
+        return HttpResponseForbidden()
+    characters = Character.objects.owned_by_user(user)
+    pg = PriceGroups()
+    allpgs = {}
+    alldays = {}
+    polar = {}
+    for c in characters:
+        ledger = c.get_90d_mining()
+        for entry in ledger:
+            g = pg.taxgroups[entry.eve_type.eve_group_id]
+            allpgs[g] = [g]
+            v = entry.taxed_value
+            if entry.date not in alldays:
+                alldays[entry.date] = {}
+            if g not in alldays[entry.date]:
+                alldays[entry.date][g] = 0.0
+            if g not in polar:
+                polar[g] = 0.0
+            alldays[entry.date][g] += v
+            polar[g] += v
+    xs = ["x"]
+    curd = sorted(alldays.keys())[0]
+    days = [0, 0]
+    while curd <= now().date():
+        xs.append(curd)
+        days[1] += 1
+        mined = False
+        for g in allpgs.keys():
+            if curd not in alldays or g not in alldays[curd]:
+                allpgs[g].append(0)
+            else:
+                mined = True
+                allpgs[g].append(alldays[curd][g])
+        if mined:
+            days[0] += 1
+        curd += dt.timedelta(days=1)
+    finalgraph = [xs]
+    for g in allpgs.keys():
+        finalgraph.append(allpgs[g])
+
+    polargraph = []
+    for g in polar.keys():
+        polargraph.append([g, polar[g]])
+
+    days = round(100.0 * days[0] / days[1], 2)
+    return JsonResponse(
+        {
+            "stacked": finalgraph,
+            "polargraph": polargraph,
+            "days": [["days mined", days]],
+        }
+    )

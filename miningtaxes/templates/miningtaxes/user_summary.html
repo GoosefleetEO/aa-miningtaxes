@@ -7,18 +7,6 @@
 {% block details %}
 
 <div class="row">
-    <div class="col-md-12">
-    <div class="panel panel-default">
-        <div class="panel-heading" style="display:flex;">
-            <h3 class="panel-title">Monthly Taxes</h3>
-        </div>
-        <div class="panel-body">
-		<div id="isk"></div>
-        </div>
-    </div>
-    </div>
-</div>
-<div class="row">
 	<div class="col-md-6">
     		<div class="panel panel-default">
 			<div class="panel-heading" style="display:flex;">
@@ -40,7 +28,30 @@
 				</dl>
 			</div>
 		</div>
+    <br/>
 
+    <div class="panel panel-default">
+        <div class="panel-heading" style="display:flex;">
+            <h3 class="panel-title">90 day Mining distribution</h3>
+        </div>
+        <div class="panel-body">
+		<div id="polar90"></div>
+        </div>
+    </div>
+    <br/>
+    <div class="panel panel-default">
+        <div class="panel-heading" style="display:flex;">
+            <h3 class="panel-title">Percent of mining days</h3>
+        </div>
+        <div class="panel-body">
+		<div id="gauge"></div>
+        </div>
+    </div>
+
+
+	</div>
+
+	<div class="col-md-6">
     		<div class="panel panel-default">
 			<div class="panel-heading" style="display:flex;">
 				<button class="btn btn-default" onclick="prior()"><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span></button>
@@ -62,11 +73,38 @@
 			    </div>
 			</div>
 		</div>
-
-
-
 	</div>
-	<div class="col-md-6">
+</div>
+
+
+<div class="row">
+    <div class="col-md-12">
+    <div class="panel panel-default">
+        <div class="panel-heading" style="display:flex;">
+            <h3 class="panel-title">90 day Daily Mining Totals</h3>
+        </div>
+        <div class="panel-body">
+		<div id="day90"></div>
+        </div>
+    </div>
+    </div>
+</div>
+
+
+<div class="row">
+    <div class="col-md-12">
+    <div class="panel panel-default">
+        <div class="panel-heading" style="display:flex;">
+            <h3 class="panel-title">Monthly Taxes</h3>
+        </div>
+        <div class="panel-body">
+		<div id="isk"></div>
+        </div>
+    </div>
+    </div>
+</div>
+<div class="row">
+	<div class="col-md-12">
     		<div class="panel panel-default">
 			<div class="panel-heading" style="display:flex;">
 			    <h3 class="panel-title">Tax Payments</h3>
@@ -126,6 +164,88 @@ function render_lb() {
 }
 
 (function() {
+	$.getJSON("{% url 'miningtaxes:user_mining_ledger_90day' user_pk %}", function (d) {
+		console.log(d);
+		var maxpg = 0;
+		d["polargraph"].forEach(function(arr) { if (maxpg < arr[1]) { maxpg = arr[1]; } });
+		var pgs = [];
+		d["stacked"].forEach(function(arr) { if (arr[0] != "x") { pgs.push(arr[0]); } });
+		console.log(pgs);
+
+		var chart = bb.generate({
+		  data: {
+		    columns: d["polargraph"],
+		    type: "donut",
+		    order: null
+		  },
+		  bindto: "#polar90"
+		});
+
+		bb.generate({
+		  data: {
+		    x: "x",
+		    columns: d["stacked"],
+		    axes: { isk: "y"},
+		    type: "bar",
+		    groups: [pgs],
+		  },
+			axis: {
+                                x: {
+                                        padding: { right: 8000*60*60*12 },
+                                        type: "timeseries",
+                                        tick: { format: "%Y-%m-%d", rotate: 45 }
+                                },
+                                y: {
+                                        tick: { format: function(x) {
+                                                return d3.format(",")(x);
+                                        } },
+                                        label: "ISK"
+                                },
+                        },
+
+		  bindto: "#day90"
+		});
+
+		bb.generate({
+		  data: {
+		    columns: d["days"],
+		    type: "gauge", // for ESM specify as: gauge()
+		    onclick: function(d, i) {
+			console.log("onclick", d, i);
+		   },
+		    onover: function(d, i) {
+			console.log("onover", d, i);
+		   },
+		    onout: function(d, i) {
+			console.log("onout", d, i);
+		   }
+		  },
+		  gauge: {},
+		  color: {
+		    pattern: [
+		      "#FF0000",
+		      "#F97600",
+		      "#F6C600",
+		      "#60B044"
+		    ],
+		    threshold: {
+		      values: [
+			30,
+			60,
+			90,
+			100
+		      ]
+		    }
+		  },
+		  size: {
+		    height: 180
+		  },
+		  bindto: "#gauge"
+		});
+
+
+
+	});
 	$.getJSON("{% url 'miningtaxes:summary_month_json' user_pk %}", function (d) {
 		var iskchart = bb.generate({
 			data: {
