@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - Added more user level stats for tracking mining activity over time.
+- Added caching of views for performance
 
 ### Changed
 

@@ -1,6 +1,11 @@
 from app_utils.django import clean_setting
 
-# put your app settings here
+MININGTAXES_TAX_CACHE_VIEW_TIMEOUT = clean_setting(
+    "MININGTAXES_TAX_CACHE_VIEW_TIMEOUT", 60 * 60 * 6
+)
+"""Number of seconds before view cache expires.
+"""
+
 
 MININGTAXES_TAX_ONLY_CORP_MOONS = clean_setting("MININGTAXES_TAX_ONLY_CORP_MOONS", True)
 """Only tax corporate moons using moon observers as opposed to all moons appearing

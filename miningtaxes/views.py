@@ -16,6 +16,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.timezone import now
+from django.views.decorators.cache import cache_page
 from esi.decorators import token_required
 
 from allianceauth.eveonline.models import EveCharacter
@@ -25,6 +26,7 @@ from app_utils.logging import LoggerAddTag
 from app_utils.views import bootstrap_icon_plus_name_html
 
 from . import __title__, tasks
+from .app_settings import MININGTAXES_TAX_CACHE_VIEW_TIMEOUT
 from .forms import SettingsForm
 from .helpers import PriceGroups
 from .models import (
@@ -83,6 +85,7 @@ def admin_launcher(request):
 
 
 @login_required
+@cache_page(MININGTAXES_TAX_CACHE_VIEW_TIMEOUT)
 @permission_required("miningtaxes.auditor_access")
 def admin_char_json(request):
     char_level = {}
@@ -148,6 +151,7 @@ def main_data_helper(chars):
 
 
 @login_required
+@cache_page(MININGTAXES_TAX_CACHE_VIEW_TIMEOUT)
 @permission_required("miningtaxes.auditor_access")
 def admin_main_json(request):
     main_level, char2user = main_data_helper(Character.objects.all())
@@ -181,6 +185,7 @@ def admin_main_json(request):
 
 
 @login_required
+@cache_page(MININGTAXES_TAX_CACHE_VIEW_TIMEOUT)
 @permission_required("miningtaxes.auditor_access")
 def admin_tables(request):
     if request.method == "POST":
@@ -223,6 +228,7 @@ def ore_prices(request):
 
 
 @login_required
+@cache_page(MININGTAXES_TAX_CACHE_VIEW_TIMEOUT)
 @permission_required("miningtaxes.basic_access")
 def ore_prices_json(request):
     settings = Settings.load()
@@ -315,6 +321,7 @@ def user_summary(request, user_pk: int):
 
 
 @login_required
+@cache_page(MININGTAXES_TAX_CACHE_VIEW_TIMEOUT)
 @permission_required("miningtaxes.auditor_access")
 def admin_corp_ledger(request):
     obs = AdminMiningCorpLedgerEntry.objects.all().order_by("-date")
@@ -373,6 +380,7 @@ def characterize(char):
 
 
 @login_required
+@cache_page(MININGTAXES_TAX_CACHE_VIEW_TIMEOUT)
 @permission_required("miningtaxes.auditor_access")
 def admin_corp_mining_history(request):
     obs = AdminMiningObsLog.objects.all().order_by("-date")
@@ -447,6 +455,7 @@ def admin_corp_mining_history(request):
 
 
 @login_required
+@cache_page(MININGTAXES_TAX_CACHE_VIEW_TIMEOUT)
 @permission_required("miningtaxes.auditor_access")
 def admin_mining_by_sys_json(request):
     entries = CharacterMiningLedgerEntry.objects.all().prefetch_related(
@@ -564,6 +573,7 @@ def admin_mining_by_sys_json(request):
 
 
 @login_required
+@cache_page(MININGTAXES_TAX_CACHE_VIEW_TIMEOUT)
 @permission_required("miningtaxes.auditor_access")
 def admin_tax_revenue_json(request):
     entries = AdminMiningCorpLedgerEntry.objects.all()
@@ -591,6 +601,7 @@ def admin_tax_revenue_json(request):
 
 
 @login_required
+@cache_page(MININGTAXES_TAX_CACHE_VIEW_TIMEOUT)
 @permission_required("miningtaxes.auditor_access")
 def admin_month_json(request):
     characters = Character.objects.all()
@@ -638,6 +649,7 @@ def admin_month_json(request):
 
 
 @login_required
+@cache_page(MININGTAXES_TAX_CACHE_VIEW_TIMEOUT)
 @permission_required("miningtaxes.basic_access")
 def summary_month_json(request, user_pk: int):
     user = User.objects.get(pk=user_pk)
@@ -700,6 +712,7 @@ def all_tax_credits(request, user_pk: int):
 
 
 @login_required
+@cache_page(MININGTAXES_TAX_CACHE_VIEW_TIMEOUT)
 @permission_required("miningtaxes.basic_access")
 def leaderboards(request):
     characters = Character.objects.all()
@@ -896,6 +909,7 @@ def character_viewer(request, character_pk: int):
 
 
 @login_required
+@cache_page(MININGTAXES_TAX_CACHE_VIEW_TIMEOUT)
 @permission_required("memberaudit.basic_access")
 def character_mining_ledger_data(request, character_pk: int) -> JsonResponse:
     character = Character.objects.get(pk=character_pk)
@@ -926,6 +940,7 @@ def character_mining_ledger_data(request, character_pk: int) -> JsonResponse:
 
 
 @login_required
+@cache_page(MININGTAXES_TAX_CACHE_VIEW_TIMEOUT)
 @permission_required("memberaudit.basic_access")
 def user_mining_ledger_90day(request, user_pk: int) -> JsonResponse:
     user = User.objects.get(pk=user_pk)
