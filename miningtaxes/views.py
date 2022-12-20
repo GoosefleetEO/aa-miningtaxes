@@ -25,7 +25,7 @@ from app_utils.helpers import humanize_number
 from app_utils.logging import LoggerAddTag
 from app_utils.views import bootstrap_icon_plus_name_html
 
-from . import __title__, tasks
+from . import __title__, __version__, tasks
 from .app_settings import MININGTAXES_TAX_CACHE_VIEW_TIMEOUT
 from .forms import SettingsForm
 from .helpers import PriceGroups
@@ -79,6 +79,7 @@ def admin_launcher(request):
         "page_title": "Admin Settings",
         "auth_characters": auth_characters,
         "has_registered_characters": len(auth_characters) > 0,
+        "version": __version__,
         "form": form,
     }
     return render(request, "miningtaxes/admin_launcher.html", context)
@@ -185,7 +186,6 @@ def admin_main_json(request):
 
 
 @login_required
-@cache_page(MININGTAXES_TAX_CACHE_VIEW_TIMEOUT)
 @permission_required("miningtaxes.auditor_access")
 def admin_tables(request):
     if request.method == "POST":
