@@ -75,6 +75,7 @@
 		</div>
 	</div>
 </div>
+<!--
 <div class="row">
 	<div class="col-md-12">
     		<div class="panel panel-default">
@@ -101,6 +102,7 @@
 		</div>
 	</div>
 </div>
+-->
 
 <div class="modal" id="modalCredit" tabindex="-1" role="dialog" aria-labelledby="modalCredit">
     <div class="modal-dialog  modal-sm" role="document" id="modalCredit">
@@ -427,7 +429,7 @@ function draw_corp_moons() {
 			},
 			{ data: 'last' },
 		    ],
-		    order: [[1, "desc"]]
+		    order: [[3, "desc"]]
 		});
 		unknown_table = $('#unknown').DataTable({
 		    columns: [
@@ -442,7 +444,7 @@ function draw_corp_moons() {
 			},
 			{ data: 'last' },
 		    ],
-		    order: [[1, "desc"]]
+		    order: [[3, "desc"]]
 		});
 		corpmoon_table = $('#corpmoon').DataTable({
 		    columns: [
@@ -708,6 +710,7 @@ $(document).ready(function () {
             ],
             order: [[0, "desc"]]
         });
+      /*
         $('#chars').DataTable({
             ajax: {
                 url: "{% url 'miningtaxes:admin_char_json' %}",
@@ -733,5 +736,6 @@ $(document).ready(function () {
             ],
             order: [[5, "desc"]]
         });
+									      */
 });
 {% endblock %}
