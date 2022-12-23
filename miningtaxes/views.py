@@ -102,6 +102,8 @@ def admin_char_json(request):
 
     char_data = []
     for c in char_level.keys():
+        if c.eve_character is None:
+            continue
         char_data.append(
             {
                 "name": bootstrap_icon_plus_name_html(
@@ -133,6 +135,9 @@ def main_data_helper(chars):
     char2user = {}
 
     for char in chars:
+        if char.main_character is None:
+            logger.error(f"Missing main: {char}")
+            continue
         m = char.main_character
         char2user[m] = char.user.pk
         if m not in main_level:
@@ -605,6 +610,13 @@ def admin_tax_revenue_json(request):
 @permission_required("miningtaxes.auditor_access")
 def admin_month_json(request):
     characters = Character.objects.all()
+    newchars = []
+    for c in characters:
+        if c.main_character is None:
+            logger.error(f"Missing main for {c}")
+            continue
+        newchars.append(c)
+    characters = newchars
     monthly = list(map(lambda x: x.get_monthly_taxes(), characters))
     users = list(map(lambda x: x.main_character.character_name, characters))
     firstmonth = None
@@ -694,6 +706,8 @@ def all_tax_credits(request, user_pk: int):
     characters = Character.objects.owned_by_user(user)
     allcredits = []
     for c in characters:
+        if c.eve_character is None:
+            continue
         allcredits += map(
             lambda x: {
                 "date": x.date,
@@ -720,6 +734,9 @@ def leaderboards(request):
     combined = {}
     for i, entries in enumerate(allentries):
         c = characters[i].main_character
+        if c is None:
+            logger.error(f"Missing main for {c}")
+            continue
         for m in entries.keys():
             if m not in combined:
                 combined[m] = {}
