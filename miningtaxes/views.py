@@ -340,6 +340,9 @@ def admin_corp_ledger(request):
         except EveCharacter.DoesNotExist:
             name = f"<a href='https://evewho.com/character/{char}'>{char}</a>"
             pass
+        except Exception as e:
+            logger.error(f"Error unknown user: {char}, error: {e}")
+            continue
         if eve_char is not None:
             try:
                 character = eve_char.miningtaxes_character
@@ -351,6 +354,9 @@ def admin_corp_ledger(request):
                 )
                 name = f"{char_name} ({usermain})"
                 pass
+            except Exception as e:
+                logger.error(f"Error unknown user: {eve_char}, error: {e}")
+                continue
         data.append(
             {
                 "date": o.date,
