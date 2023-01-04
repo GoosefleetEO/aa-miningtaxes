@@ -348,11 +348,7 @@ def admin_corp_ledger(request):
                 character = eve_char.miningtaxes_character
                 name = character.main_character.character_name
             except AttributeError:
-                char_name = eve_char.name
-                usermain = (
-                    eve_char.character_ownership.user.profile.main_character.character_name
-                )
-                name = f"{char_name} ({usermain})"
+                name = eve_char.character_name
                 pass
             except Exception as e:
                 logger.error(f"Error unknown user: {eve_char}, error: {e}")
