@@ -4,9 +4,11 @@ import requests
 from celery import shared_task
 
 from django.db import Error
+from django.http.response import Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.timezone import now
+from eveuniverse.models import EveType
 
 from allianceauth.eveonline.models import EveCharacter
 from allianceauth.notifications import notify
@@ -163,6 +165,11 @@ def update_all_prices(self):
     # Get all type ids
     prices = PriceGroups().items
 
+    # Update EveUniverse objects
+    for item in prices:
+        EveType.objects.update_or_create_esi(id=item.id)
+        # EveTypeMaterial.objects.update_or_create_esi(id=item.id)
+
     if MININGTAXES_PRICE_METHOD == "Fuzzwork":
         logger.debug(
             "Price setup starting for %s items from Fuzzworks API from station id %s (%s), this may take up to 30 seconds..."
@@ -287,7 +294,6 @@ def add_tax_credits():
         for entry in entries:
             if phrase != "" and phrase not in entry.reason.lower():
                 continue
-            payee = None
             try:
                 payee = get_object_or_404(
                     Character,
@@ -296,8 +302,8 @@ def add_tax_credits():
                     ).pk,
                 )
             except EveCharacter.DoesNotExist:
-                pass
-            if payee is None:
+                continue
+            except Http404:
                 continue
             payee.tax_credits.update_or_create(
                 date=entry.date, credit=entry.amount, defaults={"credit_type": "paid"}

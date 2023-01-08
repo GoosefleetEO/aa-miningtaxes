@@ -25,8 +25,8 @@ urlpatterns = [
         name="character_viewer",
     ),
     path(
-        "character_mining_ledger_data/<int:character_pk>/",
-        views.character_mining_ledger_data,
+        "char_mining_ledger_data/<int:character_pk>/",
+        views.char_mining_ledger_data,
         name="character_mining_ledger_data",
     ),
     path(

@@ -927,10 +927,8 @@ def character_viewer(request, character_pk: int):
     return render(request, "miningtaxes/character_viewer.html", context)
 
 
-@login_required
-@cache_page(MININGTAXES_TAX_CACHE_VIEW_TIMEOUT)
-@permission_required("memberaudit.basic_access")
-def character_mining_ledger_data(request, character_pk: int) -> JsonResponse:
+def char_mining_ledger_data(request, character_pk: int) -> JsonResponse:
+    logger.error("HERE")
     character = Character.objects.get(pk=character_pk)
     if request.user != character.user and not request.user.has_perm(
         "miningtaxes.auditor_access"
