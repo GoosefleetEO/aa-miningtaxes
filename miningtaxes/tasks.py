@@ -8,7 +8,7 @@ from django.http.response import Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.timezone import now
-from eveuniverse.models import EveType
+from eveuniverse.models import EveType, EveTypeMaterial
 
 from allianceauth.eveonline.models import EveCharacter
 from allianceauth.notifications import notify
@@ -166,9 +166,20 @@ def update_all_prices(self):
     prices = PriceGroups().items
 
     # Update EveUniverse objects
+    matset = set()
     for item in prices:
-        EveType.objects.update_or_create_esi(id=item.id)
-        # EveTypeMaterial.objects.update_or_create_esi(id=item.id)
+        EveType.objects.update_or_create_esi(
+            id=item.id,
+            enabled_sections=EveType.Section.TYPE_MATERIALS,
+            include_children=True,
+            wait_for_children=True,
+        )
+        materials = EveTypeMaterial.objects.filter(
+            eve_type_id=item.id
+        ).prefetch_related("eve_type")
+        for mat in materials:
+            mat = mat.material_eve_type
+            matset.add(mat.id)
 
     if MININGTAXES_PRICE_METHOD == "Fuzzwork":
         logger.debug(
@@ -235,6 +246,36 @@ def update_all_prices(self):
                 tocreate.append(
                     OrePrices(eve_type_id=price.id, buy=buy, sell=sell, updated=now)
                 )
+
+        # Handling refined material prices
+        logger.debug("Materials price updating...")
+        type_ids = list(matset)
+        market_data = {}
+        market_data.update(get_bulk_prices(type_ids))
+        for mat in matset:
+            if not str(mat) in market_data:
+                logger.debug(f"Missing data on {mat}")
+                continue
+            buy = int(float(market_data[str(mat)]["buy"]["max"]))
+            sell = int(float(market_data[str(mat)]["sell"]["min"]))
+            now = timezone.now()
+
+            found = None
+            for e in existing:
+                if mat == e.eve_type.id:
+                    found = e
+                    break
+            if found is not None:
+                print(found)
+                found.buy = buy
+                found.sell = sell
+                found.updated = now
+                toupdate.append(found)
+            else:
+                tocreate.append(
+                    OrePrices(eve_type_id=price.id, buy=buy, sell=sell, updated=now)
+                )
+
         logger.debug("Objects to be created: %d" % len(tocreate))
         logger.debug("Objects to be updated: %d" % len(toupdate))
         try:

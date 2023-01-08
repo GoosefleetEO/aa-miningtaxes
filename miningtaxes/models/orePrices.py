@@ -83,7 +83,6 @@ class OrePrices(models.Model):
     refined_price = models.FloatField(default=0.0)
     taxed_price = models.FloatField(default=0.0)
     updated = models.DateTimeField()
-    # hidden = models.Boolean(default=False)
 
     def calc_prices(self):
         self.raw_price = self.buy
