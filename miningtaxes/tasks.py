@@ -274,7 +274,7 @@ def update_all_prices(self):
                 toupdate.append(found)
             else:
                 tocreate.append(
-                    OrePrices(eve_type_id=price.id, buy=buy, sell=sell, updated=now)
+                    OrePrices(eve_type_id=mat, buy=buy, sell=sell, updated=now)
                 )
 
         logger.debug("Objects to be created: %d" % len(tocreate))
