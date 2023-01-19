@@ -228,6 +228,8 @@ def update_all_prices(self):
             if not str(price.id) in market_data:
                 logger.debug(f"Missing data on {price}")
                 continue
+            if price.id in matset:
+                continue
             buy = int(float(market_data[str(price.id)]["buy"]["max"]))
             sell = int(float(market_data[str(price.id)]["sell"]["min"]))
             now = timezone.now()
@@ -266,7 +268,6 @@ def update_all_prices(self):
                     found = e
                     break
             if found is not None:
-                print(found)
                 found.buy = buy
                 found.sell = sell
                 found.updated = now
