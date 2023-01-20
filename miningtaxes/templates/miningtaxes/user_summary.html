@@ -14,19 +14,21 @@
 			</div>
 			<div class="panel-body">
 				<dl class="dl-horizontal">
-					<dt title='test tooltip'>Taxes past due:</dt>
+					<dt>Taxes past due:</dt>
 					{% if taxes_due > 0 %}
 						<dd class="nowrap text-red">
 					{% else %}
 						<dd class="nowrap text-green">
 					{% endif %}
-					{{ taxes_due }} ISK <div class="tooltip">test <div class="tooltiptext">Hello</div></div></dd>
+					<span data-toggle="tooltip" data-placement="bottom" title="Green means that you do not owe taxes or have overpaid, red means that you owe taxes. Taxes past due refers to the amount needed to be paid currently to avoid interest (frozen at the end of the previous month).">
+						{{ taxes_due }} ISK</span> </dd>
 					<dt>Current Taxes owed:</dt>
 					{% if balance > 0 %}
 						<dd class="nowrap text-red">
 					{% else %}
 						<dd class="nowrap text-green">
 					{% endif %}
+					<span data-toggle="tooltip" data-placement="bottom" title="Green means that you do not owe taxes or have overpaid, red means that you owe taxes. Current taxes refers to the tax balance taking into consideration the amount of mining performed in the current month.">
 						{{ balance }} ISK</dd>
 					<dt>Current Taxes exact:</dt>
 					{% if balance_raw > 0 %}
@@ -34,6 +36,7 @@
 					{% else %}
 						<dd class="nowrap text-green">
 					{% endif %}
+					<span data-toggle="tooltip" data-placement="bottom" title="Green means that you do not owe taxes or have overpaid, red means that you owe taxes. Current taxes refers to the tax balance taking into consideration the amount of mining performed in the current month.">
 						{{ balance_raw }} ISK</dd>
 					<dt>Last paid:</dt>
 					<dd class="nowrap"> {{ last_paid|timesince }}</dd>
@@ -42,7 +45,6 @@
 					<dd class="nowrap"><a href="{% url 'miningtaxes:character_viewer' char.pk %}"> {{ char.name }}</a></dd>
 					{% endfor %}
 				</dl>
-				<i>Green means that you do not owe taxes or have overpaid, red means that you owe taxes. Taxes past due refers to the amount needed to be paid currently to avoid interest (frozen at the end of the previous month). Current taxes refers to the tax balance taking into consideration the amount of mining performed in the current month.</i>
 			</div>
 		</div>
     <br/>
@@ -181,6 +183,7 @@ function render_lb() {
 }
 
 (function() {
+	$('[data-toggle="tooltip"]').tooltip();
 	$.getJSON("{% url 'miningtaxes:user_mining_ledger_90day' user_pk %}", function (d) {
 		console.log(d);
 		var maxpg = 0;

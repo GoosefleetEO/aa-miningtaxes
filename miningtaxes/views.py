@@ -158,7 +158,6 @@ def main_data_helper(chars):
 
 
 @login_required
-@cache_page(MININGTAXES_TAX_CACHE_VIEW_TIMEOUT)
 @permission_required("miningtaxes.auditor_access")
 def admin_main_json(request):
     main_level, char2user, user2taxes = main_data_helper(Character.objects.all())
@@ -663,7 +662,7 @@ def admin_month_json(request):
         for row in yout:
             sumy += row[yi]
         yall.append(sumy)
-    yout.insert(yall, 0)
+    yout.insert(0, yall)
 
     csvdata = [["Month", "Main", "Taxes Total"]]
     for xi in range(1, len(xs)):
