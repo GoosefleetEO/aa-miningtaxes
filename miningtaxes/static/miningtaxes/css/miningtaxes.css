@@ -1,4 +1,38 @@
 /* Common styles for all pages of this app */
+.tooltip {
+  position: relative;
+  display: inline-block;
+  border-bottom: 1px dotted black;
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+
+  /* Position the tooltip */
+  position: absolute;
+  z-index: 1;
+  bottom: 100%;
+  left: 50%;
+  margin-left: -60px;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}
+
+.item-icon-button{
+  height: 25px;
+}
+.item-icon{
+  top: -10px !important;
+}
+
 @media all {
     .icon-plus-name {
         padding-left: 2em;
@@ -7,6 +41,14 @@
 
     .text-high-sec {
         color: rgb(0, 128, 0);
+    }
+
+    .text-green {
+        color: rgb(50, 154, 50);
+    }
+
+    .text-red {
+        color: rgb(255, 60, 60);
     }
 
     .text-low-sec {

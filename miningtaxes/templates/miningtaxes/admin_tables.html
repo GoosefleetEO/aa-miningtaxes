@@ -63,7 +63,8 @@
                 <tr>
                     <th>{% translate 'Name' %}</th>
                     <th>{% translate 'Corp' %}</th>
-                    <th>{% translate 'Balance' %}</th>
+                    <th>{% translate 'Taxes Due' %}</th>
+                    <th>{% translate 'Current Balance' %}</th>
                     <th>{% translate 'Last Paid' %}</th>
 		    <th>{% translate 'Actions' %}</th>
                 </tr>
@@ -208,9 +209,9 @@
 	<div class="col-md-12">
     		<div class="panel panel-default">
 			<div class="panel-heading" style="display:flex;">
-				<button class="btn btn-default" onclick="prior()"><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span></button>
+				<button class="btn btn-default item-icon-button" onclick="prior()"><span class="glyphicon glyphicon-chevron-left item-icon" aria-hidden="true"></span></button>
 				<h3 class="panel-title"><span id='sys_month_disp'></span></h3>
-				<button class="btn btn-default" onclick="next()"><span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span></button>
+				<button class="btn btn-default item-icon-button" onclick="next()"><span class="glyphicon glyphicon-chevron-right item-icon" aria-hidden="true"></span></button>
 			</div>
 			<div class="panel-body">
 			    <div class="table-responsive">
@@ -684,6 +685,10 @@ $(document).ready(function () {
             columns: [
                 { data: 'name' },
                 { data: 'corp' },
+                {
+                    data: 'taxes_due',
+                    render: $.fn.dataTable.render.number(',', '.', 2)
+                },
                 {
                     data: 'balance',
                     render: $.fn.dataTable.render.number(',', '.', 2)

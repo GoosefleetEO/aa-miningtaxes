@@ -133,13 +133,14 @@ def admin_char_json(request):
 def main_data_helper(chars):
     main_level = {}
     char2user = {}
+    user2taxes = tasks.calctaxes()
 
     for char in chars:
         if char.main_character is None:
             logger.error(f"Missing main: {char}")
             continue
         m = char.main_character
-        char2user[m] = char.user.pk
+        char2user[m] = char.user
         if m not in main_level:
             main_level[m] = {"life_tax": 0.0, "life_credits": 0.0, "last_paid": None}
         main_level[m]["life_tax"] += char.get_lifetime_taxes()
@@ -153,17 +154,18 @@ def main_data_helper(chars):
         main_level[m]["balance"] = (
             main_level[m]["life_tax"] - main_level[m]["life_credits"]
         )
-    return main_level, char2user
+    return main_level, char2user, user2taxes
 
 
 @login_required
 @cache_page(MININGTAXES_TAX_CACHE_VIEW_TIMEOUT)
 @permission_required("miningtaxes.auditor_access")
 def admin_main_json(request):
-    main_level, char2user = main_data_helper(Character.objects.all())
+    main_level, char2user, user2taxes = main_data_helper(Character.objects.all())
+    logger.debug("HERE")
     main_data = []
     for i, m in enumerate(main_level.keys()):
-        summary_url = reverse("miningtaxes:user_summary", args=[char2user[m]])
+        summary_url = reverse("miningtaxes:user_summary", args=[char2user[m].pk])
         action_html = (
             '<a class="btn btn-primary btn-sm" '
             f"href='{summary_url}'>"
@@ -184,7 +186,8 @@ def admin_main_json(request):
                 "balance": main_level[m]["balance"],
                 "last_paid": main_level[m]["last_paid"],
                 "action": action_html,
-                "user": char2user[m],
+                "user": char2user[m].pk,
+                "taxes_due": user2taxes[char2user[m]][0],
             }
         )
     return JsonResponse({"data": main_data})
@@ -309,7 +312,8 @@ def user_summary(request, user_pk: int):
             auth_characters.append(character)
     unregistered_chars = sorted(unregistered_chars)
     main_character_id = request.user.profile.main_character.character_id
-    main_data, _ = main_data_helper(auth_characters)
+    main_data, _, user2taxes = main_data_helper(auth_characters)
+
     context = {
         "page_title": "Taxes Summary",
         "auth_characters": auth_characters,
@@ -319,6 +323,7 @@ def user_summary(request, user_pk: int):
         "balance_raw": "{:,.2f}".format(
             round(main_data[list(main_data.keys())[0]]["balance"], 2)
         ),
+        "taxes_due": user2taxes[request.user][0],
         "last_paid": main_data[list(main_data.keys())[0]]["last_paid"],
         "user_pk": user_pk,
     }
@@ -651,6 +656,14 @@ def admin_month_json(request):
     yout = []
     for user in ys.keys():
         yout.append([user] + [sum(x) for x in zip(*ys[user])])
+
+    yall = ["all"]
+    for yi in range(1, len(xs)):
+        sumy = 0
+        for row in yout:
+            sumy += row[yi]
+        yall.append(sumy)
+    yout.insert(yall, 0)
 
     csvdata = [["Month", "Main", "Taxes Total"]]
     for xi in range(1, len(xs)):

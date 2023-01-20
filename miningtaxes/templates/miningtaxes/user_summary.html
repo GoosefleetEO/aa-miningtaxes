@@ -14,18 +14,35 @@
 			</div>
 			<div class="panel-body">
 				<dl class="dl-horizontal">
+					<dt title='test tooltip'>Taxes past due:</dt>
+					{% if taxes_due > 0 %}
+						<dd class="nowrap text-red">
+					{% else %}
+						<dd class="nowrap text-green">
+					{% endif %}
+					{{ taxes_due }} ISK <div class="tooltip">test <div class="tooltiptext">Hello</div></div></dd>
 					<dt>Current Taxes owed:</dt>
-					<dd class="nowrap"> {{ balance }} ISK</dd>
-					<dt>Exact amount:</dt>
-					<dd class="nowrap"> {{ balance_raw }} ISK</dd>
+					{% if balance > 0 %}
+						<dd class="nowrap text-red">
+					{% else %}
+						<dd class="nowrap text-green">
+					{% endif %}
+						{{ balance }} ISK</dd>
+					<dt>Current Taxes exact:</dt>
+					{% if balance_raw > 0 %}
+						<dd class="nowrap text-red">
+					{% else %}
+						<dd class="nowrap text-green">
+					{% endif %}
+						{{ balance_raw }} ISK</dd>
 					<dt>Last paid:</dt>
 					<dd class="nowrap"> {{ last_paid|timesince }}</dd>
 					<dt>Characters:</dt>
 					{% for char in auth_characters %}
 					<dd class="nowrap"><a href="{% url 'miningtaxes:character_viewer' char.pk %}"> {{ char.name }}</a></dd>
 					{% endfor %}
-
 				</dl>
+				<i>Green means that you do not owe taxes or have overpaid, red means that you owe taxes. Taxes past due refers to the amount needed to be paid currently to avoid interest (frozen at the end of the previous month). Current taxes refers to the tax balance taking into consideration the amount of mining performed in the current month.</i>
 			</div>
 		</div>
     <br/>
@@ -54,9 +71,9 @@
 	<div class="col-md-6">
     		<div class="panel panel-default">
 			<div class="panel-heading" style="display:flex;">
-				<button class="btn btn-default" onclick="prior()"><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span></button>
-				<h3 class="panel-title">Leaderboard: <span id='leaderboard-month'></span></h3>
-				<button class="btn btn-default" onclick="next()"><span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span></button>
+				<button class="btn btn-default item-icon-button" onclick="prior()"><span class="glyphicon glyphicon-chevron-left item-icon" aria-hidden="true"></span></button>
+				<h3 class="panel-title"> Leaderboard: <span id='leaderboard-month'></span></h3>
+				<button class="btn btn-default item-icon-button" onclick="next()"><span class="glyphicon glyphicon-chevron-right item-icon" aria-hidden="true"></span></button>
 			</div>
 			<div class="panel-body">
 			    <div class="table-responsive">

@@ -56,6 +56,11 @@ def calctaxes():
         credits = character.get_lifetime_credits()
         user2taxes[character.user][0] -= credits
 
+    for user in user2taxes.keys():
+        taxes_due = round(user2taxes[user][0], 2)
+        if taxes_due == 0.00:
+            taxes_due = abs(taxes_due)
+        user2taxes[user][0] = taxes_due
     return user2taxes
 
 
