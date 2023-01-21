@@ -310,7 +310,7 @@ def user_summary(request, user_pk: int):
         else:
             auth_characters.append(character)
     unregistered_chars = sorted(unregistered_chars)
-    main_character_id = request.user.profile.main_character.character_id
+    main_character_id = user.profile.main_character.character_id
     main_data, _, user2taxes = main_data_helper(auth_characters)
 
     context = {
@@ -322,7 +322,7 @@ def user_summary(request, user_pk: int):
         "balance_raw": "{:,.2f}".format(
             round(main_data[list(main_data.keys())[0]]["balance"], 2)
         ),
-        "taxes_due": user2taxes[request.user][0],
+        "taxes_due": user2taxes[user][0],
         "last_paid": main_data[list(main_data.keys())[0]]["last_paid"],
         "user_pk": user_pk,
     }
