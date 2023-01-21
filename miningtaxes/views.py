@@ -322,7 +322,7 @@ def user_summary(request, user_pk: int):
         "balance_raw": "{:,.2f}".format(
             round(main_data[list(main_data.keys())[0]]["balance"], 2)
         ),
-        "taxes_due": user2taxes[user][0],
+        "taxes_due": "{:,.2f}".format(user2taxes[user][0]),
         "last_paid": main_data[list(main_data.keys())[0]]["last_paid"],
         "user_pk": user_pk,
     }
@@ -653,7 +653,7 @@ def admin_month_json(request):
             y.append(entries[xs[yi]])
         ys[users[i]].append(y)
     yout = []
-    for user in ys.keys():
+    for user in sorted(ys.keys()):
         yout.append([user] + [sum(x) for x in zip(*ys[user])])
 
     yall = ["all"]
@@ -940,7 +940,6 @@ def character_viewer(request, character_pk: int):
 
 
 def char_mining_ledger_data(request, character_pk: int) -> JsonResponse:
-    logger.error("HERE")
     character = Character.objects.get(pk=character_pk)
     if request.user != character.user and not request.user.has_perm(
         "miningtaxes.auditor_access"
