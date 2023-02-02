@@ -319,9 +319,7 @@ def user_summary(request, user_pk: int):
         "unregistered_chars": unregistered_chars,
         "main_character_id": main_character_id,
         "balance": humanize_number(main_data[list(main_data.keys())[0]]["balance"]),
-        "balance_raw": "{:,.2f}".format(
-            round(main_data[list(main_data.keys())[0]]["balance"], 2)
-        ),
+        "balance_raw": main_data[list(main_data.keys())[0]]["balance"],
         "taxes_due": user2taxes[user][0],
         "last_paid": main_data[list(main_data.keys())[0]]["last_paid"],
         "user_pk": user_pk,
