@@ -21,7 +21,7 @@
 						<dd class="nowrap text-green">
 					{% endif %}
 					<span data-toggle="tooltip" data-placement="bottom" title="Green means that you do not owe taxes or have overpaid, red means that you owe taxes. Taxes past due refers to the amount needed to be paid currently to avoid interest (frozen at the end of the previous month).">
-						{{ taxes_due }} ISK</span> </dd>
+						{{ taxes_due|floatformat:2|intcomma }} ISK</span> </dd>
 					<dt>Current Taxes owed:</dt>
 					{% if balance > 0 %}
 						<dd class="nowrap text-red">
@@ -37,7 +37,7 @@
 						<dd class="nowrap text-green">
 					{% endif %}
 					<span data-toggle="tooltip" data-placement="bottom" title="Green means that you do not owe taxes or have overpaid, red means that you owe taxes. Current taxes refers to the tax balance taking into consideration the amount of mining performed in the current month.">
-						{{ balance_raw }} ISK</dd>
+						{{ balance_raw|floatformat:2|intcomma }} ISK</dd>
 					<dt>Last paid:</dt>
 					<dd class="nowrap"> {{ last_paid|timesince }}</dd>
 					<dt>Characters:</dt>

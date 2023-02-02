@@ -322,7 +322,7 @@ def user_summary(request, user_pk: int):
         "balance_raw": "{:,.2f}".format(
             round(main_data[list(main_data.keys())[0]]["balance"], 2)
         ),
-        "taxes_due": "{:,.2f}".format(user2taxes[user][0]),
+        "taxes_due": user2taxes[user][0],
         "last_paid": main_data[list(main_data.keys())[0]]["last_paid"],
         "user_pk": user_pk,
     }
