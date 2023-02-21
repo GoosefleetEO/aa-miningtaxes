@@ -75,6 +75,7 @@ CELERYBEAT_SCHEDULE['miningtaxes_apply_interest'] = {
 
 Name | Description | Default
 -- | -- | --
+MININGTAXES_UNKNOWN_TAX_RATE | The tax rate when a new type of ore is encountered that has not yet been added to the plugin in float (eg 0.10 means 10%) | 0.10
 MININGTAXES_TAX_ONLY_CORP_MOONS | Only tax corporate moons using moon observers as opposed to all moons appearing in the personal mining ledgers. | True
 MININGTAXES_UPDATE_LEDGER_STALE | Minutes after which a character's mining ledger is considered stale | 240
 MININGTAXES_REFINED_RATE | Refining rate for ores. | 0.9063

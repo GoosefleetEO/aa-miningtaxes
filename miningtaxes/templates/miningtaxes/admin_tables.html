@@ -671,6 +671,7 @@ $(document).ready(function () {
 		for (var i = 0 ; i < d["ydata"].length; i++) {
 			iskchart.load({columns: [d['xdata'], d['ydata'][i]]});
 		}
+		iskchart.focus(["all"]);
 		csv_data = d["csv"];
 		$("#csv").click(exportdata);
 		} );

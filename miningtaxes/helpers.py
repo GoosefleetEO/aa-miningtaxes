@@ -40,6 +40,10 @@ class PriceGroups:
         461,  # Spodumain
         4029,  # Talassonite
         462,  # Veldspar
+        4513,  # Mordunium
+        4514,  # Ytirium
+        4515,  # Eifyrium
+        4516,  # Ducinium
     )
 
     taxgroups = {
@@ -69,6 +73,10 @@ class PriceGroups:
         461: "Ores",
         4029: "Ores",
         462: "Ores",
+        4513: "Ores",
+        4514: "Ores",
+        4515: "Ores",
+        4516: "Ores",
     }
 
     def __init__(self):

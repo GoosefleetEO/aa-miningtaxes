@@ -7,7 +7,7 @@ from allianceauth.services.hooks import get_extension_logger
 from app_utils.logging import LoggerAddTag
 
 from .. import __title__
-from ..app_settings import MININGTAXES_REFINED_RATE
+from ..app_settings import MININGTAXES_REFINED_RATE, MININGTAXES_UNKNOWN_TAX_RATE
 from ..helpers import PriceGroups
 from .settings import Settings
 
@@ -21,7 +21,7 @@ def get_tax(eve_type):
         logger.debug(
             "Unknown evetype for %s, group: %d" % (eve_type, eve_type.eve_group_id)
         )
-        return 0.10
+        return MININGTAXES_UNKNOWN_TAX_RATE
     group = "tax_" + pg.taxgroups[eve_type.eve_group_id]
     return settings.__dict__[group] / 100.0
 

@@ -312,6 +312,9 @@ def user_summary(request, user_pk: int):
     unregistered_chars = sorted(unregistered_chars)
     main_character_id = user.profile.main_character.character_id
     main_data, _, user2taxes = main_data_helper(auth_characters)
+    taxes_due = user2taxes[user][0]
+    if taxes_due < 0:
+        taxes_due = 0
 
     context = {
         "page_title": "Taxes Summary",
@@ -320,7 +323,7 @@ def user_summary(request, user_pk: int):
         "main_character_id": main_character_id,
         "balance": humanize_number(main_data[list(main_data.keys())[0]]["balance"]),
         "balance_raw": main_data[list(main_data.keys())[0]]["balance"],
-        "taxes_due": user2taxes[user][0],
+        "taxes_due": taxes_due,
         "last_paid": main_data[list(main_data.keys())[0]]["last_paid"],
         "user_pk": user_pk,
     }

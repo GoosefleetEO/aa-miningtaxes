@@ -23,7 +23,7 @@
 					<span data-toggle="tooltip" data-placement="bottom" title="Green means that you do not owe taxes or have overpaid, red means that you owe taxes. Taxes past due refers to the amount needed to be paid currently to avoid interest (frozen at the end of the previous month).">
 						{{ taxes_due|floatformat:2|intcomma }} ISK</span> </dd>
 					<dt>Current Taxes owed:</dt>
-					{% if balance > 0 %}
+					{% if balance_raw > 0 %}
 						<dd class="nowrap text-red">
 					{% else %}
 						<dd class="nowrap text-green">
