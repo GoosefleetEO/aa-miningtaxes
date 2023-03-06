@@ -67,6 +67,7 @@ class PriceGroups:
         457: "Ores",
         526: "Ores",
         516: "Ores",
+        458: "Ores",
         459: "Ores",
         4030: "Ores",
         460: "Ores",

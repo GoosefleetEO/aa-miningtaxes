@@ -1,4 +1,4 @@
 default_app_config = "miningtaxes.apps.MiningTaxesConfig"
 
-__version__ = "1.1.21"
+__version__ = "1.1.22"
 __title__ = "Mining Taxes"
