@@ -75,10 +75,27 @@ def admin_launcher(request):
             }
         )
 
+    registered = Character.objects.all()
+    auth_registered = list()
+    for a_character in registered:
+        eve_character = a_character.eve_character
+        auth_registered.append(
+            {
+                "character_id": eve_character.character_id,
+                "character_name": eve_character.character_name,
+                "character": a_character,
+                "alliance_id": eve_character.alliance_id,
+                "alliance_name": eve_character.alliance_name,
+                "corporation_id": eve_character.corporation_id,
+                "corporation_name": eve_character.corporation_name,
+            }
+        )
+
     context = {
         "page_title": "Admin Settings",
         "auth_characters": auth_characters,
         "has_registered_characters": len(auth_characters) > 0,
+        "auth_registered": auth_registered,
         "version": __version__,
         "form": form,
     }
@@ -161,7 +178,6 @@ def main_data_helper(chars):
 @permission_required("miningtaxes.auditor_access")
 def admin_main_json(request):
     main_level, char2user, user2taxes = main_data_helper(Character.objects.all())
-    logger.debug("HERE")
     main_data = []
     for i, m in enumerate(main_level.keys()):
         summary_url = reverse("miningtaxes:user_summary", args=[char2user[m].pk])
@@ -408,23 +424,30 @@ def admin_corp_mining_history(request):
 
         if category == "unknown":
             if name not in unknown_chars:
-                unknown_chars[name] = [0, 0.0, None]
-            unknown_chars[name][0] += o.quantity
+                unknown_chars[name] = {}
+            if o.eve_solar_system not in unknown_chars[name]:
+                unknown_chars[name][o.eve_solar_system] = [0, 0.0, None]
+            unknown_chars[name][o.eve_solar_system][0] += o.quantity
             (_, _, value) = ore_calc_prices(o.eve_type, o.quantity)
-            unknown_chars[name][1] += value
-            if unknown_chars[name][2] is None or unknown_chars[name][2] < o.date:
-                unknown_chars[name][2] = o.date
+            unknown_chars[name][o.eve_solar_system][1] += value
+            if (
+                unknown_chars[name][o.eve_solar_system][2] is None
+                or unknown_chars[name][o.eve_solar_system][2] < o.date
+            ):
+                unknown_chars[name][o.eve_solar_system][2] = o.date
         elif category == "unregistered":
             if name not in unregistered_chars:
-                unregistered_chars[name] = [0, 0.0, None]
-            unregistered_chars[name][0] += o.quantity
+                unregistered_chars[name] = {}
+            if o.eve_solar_system not in unregistered_chars[name]:
+                unregistered_chars[name][o.eve_solar_system] = [0, 0.0, None]
+            unregistered_chars[name][o.eve_solar_system][0] += o.quantity
             (_, _, value) = ore_calc_prices(o.eve_type, o.quantity)
-            unregistered_chars[name][1] += value
+            unregistered_chars[name][o.eve_solar_system][1] += value
             if (
-                unregistered_chars[name][2] is None
-                or unregistered_chars[name][2] < o.date
+                unregistered_chars[name][o.eve_solar_system][2] is None
+                or unregistered_chars[name][o.eve_solar_system][2] < o.date
             ):
-                unregistered_chars[name][2] = o.date
+                unregistered_chars[name][o.eve_solar_system][2] = o.date
         data.append(
             {
                 "date": o.date,
@@ -437,25 +460,29 @@ def admin_corp_mining_history(request):
 
     unknown_data = []
     for name in unknown_chars.keys():
-        unknown_data.append(
-            {
-                "name": name,
-                "quantity": unknown_chars[name][0],
-                "isk": unknown_chars[name][1],
-                "last": unknown_chars[name][2],
-            }
-        )
+        for sys in unknown_chars[name].keys():
+            unknown_data.append(
+                {
+                    "name": name,
+                    "sys": str(sys),
+                    "quantity": unknown_chars[name][sys][0],
+                    "isk": unknown_chars[name][sys][1],
+                    "last": unknown_chars[name][sys][2],
+                }
+            )
 
     unregistered_data = []
     for name in unregistered_chars.keys():
-        unregistered_data.append(
-            {
-                "name": name,
-                "quantity": unregistered_chars[name][0],
-                "isk": unregistered_chars[name][1],
-                "last": unregistered_chars[name][2],
-            }
-        )
+        for sys in unregistered_chars[name].keys():
+            unregistered_data.append(
+                {
+                    "name": name,
+                    "sys": str(sys),
+                    "quantity": unregistered_chars[name][sys][0],
+                    "isk": unregistered_chars[name][sys][1],
+                    "last": unregistered_chars[name][sys][2],
+                }
+            )
 
     return JsonResponse(
         {
@@ -868,6 +895,42 @@ def add_character(request, token) -> HttpResponse:
         ),
     )
     return redirect("miningtaxes:launcher")
+
+
+@login_required
+@permission_required("miningtaxes.admin_access")
+def purge_old_corphistory(request) -> HttpResponse:
+    days_90 = now() - dt.timedelta(days=90)
+
+    AdminMiningObsLog.objects.filter(date__lte=days_90).delete()
+
+    messages.success(
+        request,
+        format_html("Purged old corp mining history as requested."),
+    )
+    return redirect("miningtaxes:admin_launcher")
+
+
+@login_required
+@permission_required("miningtaxes.admin_access")
+def remove_admin_registered(request, character_pk: int) -> HttpResponse:
+    try:
+        character = Character.objects.select_related(
+            "eve_character__character_ownership__user", "eve_character"
+        ).get(pk=character_pk)
+    except Character.DoesNotExist:
+        return HttpResponseNotFound(f"Character with pk {character_pk} not found")
+
+    character_name = character.eve_character.character_name
+
+    character.delete()
+    messages.success(
+        request,
+        format_html(
+            "Removed character <strong>{}</strong> as requested.", character_name
+        ),
+    )
+    return redirect("miningtaxes:admin_launcher")
 
 
 @login_required

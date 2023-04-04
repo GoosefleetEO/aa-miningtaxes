@@ -250,6 +250,7 @@
 				    <thead>
 					<tr>
 					    <th>{% translate 'Name' %}</th>
+					    <th>{% translate 'System' %}</th>
 					    <th>{% translate 'Approx. ISK' %}</th>
 					    <th>{% translate 'Ore Units' %}</th>
 					    <th>{% translate 'Last Mined' %}</th>
@@ -272,6 +273,7 @@
 				    <thead>
 					<tr>
 					    <th>{% translate 'Name' %}</th>
+					    <th>{% translate 'System' %}</th>
 					    <th>{% translate 'Approx. ISK' %}</th>
 					    <th>{% translate 'Ore Units' %}</th>
 					    <th>{% translate 'Last Mined' %}</th>
@@ -420,6 +422,7 @@ function draw_corp_moons() {
 		unregistered_table = $('#unregistered').DataTable({
 		    columns: [
 			{ data: 'name' },
+			{ data: 'sys' },
 			{
 			    data: 'isk',
 			    render: $.fn.dataTable.render.number(',', '.', 2)
@@ -435,6 +438,7 @@ function draw_corp_moons() {
 		unknown_table = $('#unknown').DataTable({
 		    columns: [
 			{ data: 'name' },
+			{ data: 'sys' },
 			{
 			    data: 'isk',
 			    render: $.fn.dataTable.render.number(',', '.', 2)

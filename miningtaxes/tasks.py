@@ -42,6 +42,8 @@ def calctaxes():
     user2taxes = {}
     characters = Character.objects.all()
     for character in characters:
+        if character.user is None:
+            continue
         taxes = character.get_monthly_taxes()
         total = 0.0
         for k in taxes.keys():

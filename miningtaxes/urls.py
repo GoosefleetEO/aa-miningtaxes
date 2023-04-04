@@ -15,6 +15,11 @@ urlpatterns = [
         name="remove_character",
     ),
     path(
+        "remove_admin_registered/<int:character_pk>/",
+        views.remove_admin_registered,
+        name="remove_admin_registered",
+    ),
+    path(
         "remove_admin_character/<int:character_pk>/",
         views.remove_admin_character,
         name="remove_admin_character",
@@ -23,6 +28,11 @@ urlpatterns = [
         "character_viewer/<int:character_pk>/",
         views.character_viewer,
         name="character_viewer",
+    ),
+    path(
+        "purge_old_corphistory",
+        views.purge_old_corphistory,
+        name="purge_old_corphistory",
     ),
     path(
         "char_mining_ledger_data/<int:character_pk>/",

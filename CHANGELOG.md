@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [v1.1.22] - 2023-04-03
+
+### Added
+
+- New administrative options to remove registered characters.
+- New admin action to purge old corp data older than 3 months.
+
+### Fixed
+
+- Notification bug that errored when a user leaves AA.
+
 ## [v1.1.3] - 2022-11-28
 
 ### Added
