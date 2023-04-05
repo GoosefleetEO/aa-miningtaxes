@@ -55,7 +55,7 @@ class AdminCharacter(CharacterAbstract):
             structname = ""
             sys = None
             if type(structinfo) == dict:
-                structname = structinfo["name"]
+                structname = structinfo["name"][0:32]  # fix for names too long
                 sys, _ = EveSolarSystem.objects.get_or_create_esi(
                     id=structinfo["solar_system_id"]
                 )
