@@ -181,6 +181,8 @@ def update_all_prices(self):
             include_children=True,
             wait_for_children=True,
         )
+        EveTypeMaterial.objects.update_or_create_esi(eve_type=item)
+
         materials = EveTypeMaterial.objects.filter(
             eve_type_id=item.id
         ).prefetch_related("eve_type")
