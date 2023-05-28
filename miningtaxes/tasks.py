@@ -110,6 +110,9 @@ def update_daily(self):
         update_character(character_pk=character.id, celery=True)
     add_corp_moon_taxes()
     add_tax_credits()
+    # precalc all characters
+    for character in characters:
+        character.precalc_all()
 
 
 def valid_janice_api_key():

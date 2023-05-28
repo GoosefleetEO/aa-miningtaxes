@@ -204,6 +204,12 @@ class CharacterAbstract(models.Model):
 
 
 class Character(CharacterAbstract):
+    life_credits = models.FloatField(default=0.0)
+    life_taxes = models.FloatField(default=0.0)
+    monthly_mining_json = models.JSONField(default=None, null=True)
+    monthly_taxes_json = models.JSONField(default=None, null=True)
+    monthly_credits_json = models.JSONField(default=None, null=True)
+
     @fetch_token_for_character("esi-industry.read_character_mining.v1")
     def update_mining_ledger(self, token: Token):
         """Update mining ledger from ESI for this character."""
@@ -229,6 +235,9 @@ class Character(CharacterAbstract):
                 defaults={"quantity": entry["quantity"]},
             )
             row.calc_prices()
+        self.calc_lifetime_taxes()
+        self.calc_monthly_taxes()
+        self.calc_monthly_mining()
 
     @classmethod
     def get_esi_scopes(cls) -> list:
@@ -236,30 +245,51 @@ class Character(CharacterAbstract):
             "esi-industry.read_character_mining.v1",
         ]
 
-    def standardize(self, months):
+    def json_standardize(self, months):
         newmonths = {}
         for h in months:
             if type(h["month"]) == dt.datetime:
-                h["month"] = h["month"].date()
+                h["month"] = str(h["month"].date())
+            else:
+                h["month"] = str(h["month"])
             newmonths[h["month"]] = h["total"]
         return newmonths
 
-    def get_lifetime_taxes(self):
+    def standardize(self, months):
+        newmonths = {}
+        for k in months.keys():
+            kn = dt.datetime.strptime(k, "%Y-%m-%d")
+            newmonths[kn] = months[k]
+        return newmonths
+
+    def calc_lifetime_taxes(self):
         amount = self.mining_ledger.all().aggregate(Sum("taxes_owed"))[
             "taxes_owed__sum"
         ]
         if amount is None:
             amount = 0.0
-        return round(amount, 2)
+        self.life_taxes = amount
+        self.save()
 
-    def get_lifetime_credits(self):
+    def calc_lifetime_credits(self):
         amount = self.tax_credits.all().aggregate(Sum("credit"))["credit__sum"]
         if amount is None:
             amount = 0.0
-        return round(amount, 2)
+        self.life_credits = amount
+        self.save()
 
-    def get_monthly_taxes(self):
-        return self.standardize(
+    def get_lifetime_taxes(self):
+        if self.life_taxes == 0.0:
+            self.calc_lifetime_taxes()
+        return round(self.life_taxes, 2)
+
+    def get_lifetime_credits(self):
+        if self.life_credits == 0.0:
+            self.calc_lifetime_credits()
+        return round(self.life_credits, 2)
+
+    def calc_monthly_taxes(self):
+        dat = (
             self.mining_ledger.all()
             .annotate(month=TruncMonth("date"))
             .values("month")
@@ -267,8 +297,16 @@ class Character(CharacterAbstract):
             .order_by("month")
         )
 
-    def get_monthly_credits(self):
-        return self.standardize(
+        self.monthly_taxes_json = self.json_standardize(dat)
+        self.save()
+
+    def get_monthly_taxes(self):
+        if self.monthly_taxes_json is None:
+            self.calc_monthly_taxes()
+        return self.standardize(self.monthly_taxes_json)
+
+    def calc_monthly_credits(self):
+        dat = (
             self.tax_credits.all()
             .annotate(month=TruncMonth("date"))
             .values("month")
@@ -276,14 +314,30 @@ class Character(CharacterAbstract):
             .order_by("month")
         )
 
-    def get_monthly_mining(self):
-        return self.standardize(
+        self.monthly_credits_json = self.json_standardize(dat)
+        self.save()
+
+    def get_monthly_credits(self):
+        if self.monthly_credits_json is None:
+            self.calc_monthly_credits()
+        return self.standardize(self.monthly_credits_json)
+
+    def calc_monthly_mining(self):
+        dat = (
             self.mining_ledger.all()
             .annotate(month=TruncMonth("date"))
             .values("month")
             .annotate(total=Sum("taxed_value"))
             .order_by("month")
         )
+
+        self.monthly_mining_json = self.json_standardize(dat)
+        self.save()
+
+    def get_monthly_mining(self):
+        if self.monthly_mining_json is None:
+            self.calc_monthly_mining()
+        return self.standardize(self.monthly_mining_json)
 
     def get_90d_mining(self):
         b = now().date() - dt.timedelta(days=90)
@@ -299,6 +353,15 @@ class Character(CharacterAbstract):
         if credit_type not in ("credit", "paid", "interest"):
             raise Exception("Unknown credit type")
         self.tax_credits.create(date=now(), credit=isk, credit_type=credit_type)
+        self.calc_lifetime_credits()
+        self.calc_monthly_credits()
+
+    def precalc_all(self):
+        self.calc_lifetime_taxes()
+        self.calc_lifetime_credits()
+        self.calc_monthly_taxes()
+        self.calc_monthly_credits()
+        self.calc_monthly_mining()
 
 
 class CharacterTaxCredits(models.Model):
