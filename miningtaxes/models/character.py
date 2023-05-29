@@ -258,7 +258,7 @@ class Character(CharacterAbstract):
     def standardize(self, months):
         newmonths = {}
         for k in months.keys():
-            kn = dt.datetime.strptime(k, "%Y-%m-%d")
+            kn = dt.datetime.strptime(k, "%Y-%m-%d").date()
             newmonths[kn] = months[k]
         return newmonths
 
