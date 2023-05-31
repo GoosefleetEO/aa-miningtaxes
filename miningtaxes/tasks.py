@@ -86,7 +86,8 @@ def update_daily(self):
     # precalc all characters
     for character in characters:
         character.precalc_all()
-    Stats.precalc_all()
+    s = Stats.load()
+    s.precalc_all()
 
 
 def valid_janice_api_key():
