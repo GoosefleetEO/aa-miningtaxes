@@ -1,5 +1,3 @@
-from datetime import date
-
 import requests
 from celery import shared_task
 
@@ -7,7 +5,6 @@ from django.db import Error
 from django.http.response import Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from django.utils.timezone import now
 from eveuniverse.models import EveType, EveTypeMaterial
 
 from allianceauth.eveonline.models import EveCharacter
@@ -30,6 +27,7 @@ from .models import (
     Character,
     OrePrices,
     Settings,
+    Stats,
 )
 
 logger = get_extension_logger(__name__)
@@ -37,33 +35,8 @@ TASK_DEFAULT_KWARGS = {"time_limit": MININGTAXES_TASKS_TIME_LIMIT, "max_retries"
 
 
 def calctaxes():
-    n = now().date()
-    curmonth = date(year=n.year, month=n.month, day=1)
-    user2taxes = {}
-    characters = Character.objects.all()
-    for character in characters:
-        if character.user is None:
-            continue
-        taxes = character.get_monthly_taxes()
-        total = 0.0
-        for k in taxes.keys():
-            if k != curmonth:
-                total += taxes[k]
-        if character.user not in user2taxes:
-            user2taxes[character.user] = [0.0, 0.0, character]
-        user2taxes[character.user][0] += total
-        if total > user2taxes[character.user][1]:
-            user2taxes[character.user][1] = total
-            user2taxes[character.user][2] = character
-        credits = character.get_lifetime_credits()
-        user2taxes[character.user][0] -= credits
-
-    for user in user2taxes.keys():
-        taxes_due = round(user2taxes[user][0], 2)
-        if taxes_due == 0.00:
-            taxes_due = abs(taxes_due)
-        user2taxes[user][0] = taxes_due
-    return user2taxes
+    s = Stats.load()
+    return s.calctaxes()
 
 
 @shared_task(**{**TASK_DEFAULT_KWARGS, **{"bind": True}})
@@ -113,6 +86,7 @@ def update_daily(self):
     # precalc all characters
     for character in characters:
         character.precalc_all()
+    Stats.precalc_all()
 
 
 def valid_janice_api_key():
