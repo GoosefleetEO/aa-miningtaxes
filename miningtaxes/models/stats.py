@@ -113,7 +113,7 @@ class Stats(models.Model):
 
         char_data = []
         for c in char_level.keys():
-            if c.eve_character is None:
+            if c.eve_character is None or c.main_character is None:
                 continue
             char_data.append(
                 {
