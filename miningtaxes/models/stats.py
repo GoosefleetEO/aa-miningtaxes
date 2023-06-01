@@ -458,6 +458,7 @@ class Stats(models.Model):
                 sumy += row[yi]
             yall.append(sumy)
         yout.insert(0, yall)
+        yout = [yall]  # disable per main retrieval
 
         csvdata = [["Month", "Main", "Taxes Total"]]
         for xi in range(1, len(xs)):
