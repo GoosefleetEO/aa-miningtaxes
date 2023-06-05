@@ -131,6 +131,8 @@ def admin_tables(request):
                     break
                 suitable = c
             suitable.give_credit(isk, "credit")
+            s = Stats.load()
+            s.calc_admin_main_json()
             messages.warning(
                 request,
                 format_html("Tax credit given!"),
@@ -212,6 +214,13 @@ def user_summary(request, user_pk: int):
         "user_pk": user_pk,
     }
     return render(request, "miningtaxes/user_summary.html", context)
+
+
+@login_required
+@permission_required("miningtaxes.auditor_access")
+def admin_get_all_activity_json(request):
+    s = Stats.load()
+    return JsonResponse({"data": s.get_admin_get_all_activity_json()})
 
 
 @login_required
@@ -418,6 +427,8 @@ def add_character(request, token) -> HttpResponse:
             eve_character,
         ),
     )
+    s = Stats.load()
+    s.calc_admin_main_json()
     return redirect("miningtaxes:launcher")
 
 

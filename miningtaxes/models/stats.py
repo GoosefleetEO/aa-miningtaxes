@@ -37,6 +37,7 @@ class Stats(models.Model):
     admin_corp_ledger = models.JSONField(default=None, null=True)
     admin_corp_mining_history = models.JSONField(default=None, null=True)
     leaderboards = models.JSONField(default=None, null=True)
+    admin_get_all_activity_json = models.JSONField(default=None, null=True)
 
     def precalc_all(self):
         self.calc_admin_char_json()
@@ -48,6 +49,7 @@ class Stats(models.Model):
         self.calc_admin_corp_ledger()
         self.calc_admin_corp_mining_history()
         self.calc_leaderboards()
+        self.calc_admin_get_all_activity_json()
 
     def characterize(self, char):
         eve_char = None
@@ -256,7 +258,7 @@ class Stats(models.Model):
             self.calc_ore_prices_json()
         return self.ore_prices_json
 
-    def calc_admin_mining_by_sys_json(self):
+    def calc_admin_get_all_activity_json(self):
         entries = CharacterMiningLedgerEntry.objects.all().prefetch_related(
             "character", "eve_type", "eve_solar_system"
         )
@@ -275,9 +277,6 @@ class Stats(models.Model):
                 "Taxed",
             ]
         ]
-        allgroups = set()
-        tables = {}
-
         for e in entries:
             try:
                 s = e.eve_solar_system.name
@@ -285,7 +284,6 @@ class Stats(models.Model):
                     sys[s] = {}
 
                 group = pg.taxgroups[e.eve_type.eve_group_id]
-                allgroups.add(group)
 
                 csv_data.append(
                     [
@@ -300,6 +298,35 @@ class Stats(models.Model):
                         e.taxes_owed,
                     ]
                 )
+            except Exception as e:
+                logger.error(f"Failed: {e}")
+                continue
+
+        self.admin_get_all_activity_json = csv_data
+        self.save()
+
+    def get_admin_get_all_activity_json(self):
+        if self.admin_get_all_activity_json is None:
+            self.calc_admin_get_all_activity_json()
+        return self.admin_get_all_activity_json
+
+    def calc_admin_mining_by_sys_json(self):
+        entries = CharacterMiningLedgerEntry.objects.all().prefetch_related(
+            "character", "eve_type", "eve_solar_system"
+        )
+        sys = {}
+        pg = PriceGroups()
+        allgroups = set()
+        tables = {}
+
+        for e in entries:
+            try:
+                s = e.eve_solar_system.name
+                if s not in sys:
+                    sys[s] = {}
+
+                group = pg.taxgroups[e.eve_type.eve_group_id]
+                allgroups.add(group)
             except Exception as e:
                 logger.error(f"Failed: {e}")
                 continue
@@ -369,7 +396,6 @@ class Stats(models.Model):
             anal[a] = ys
         self.admin_mining_by_sys_json = {
             "anal": anal,
-            "csv": csv_data,
             "tables": tables,
         }
         self.save()
@@ -518,7 +544,8 @@ class Stats(models.Model):
         return self.admin_corp_ledger
 
     def calc_admin_corp_mining_history(self):
-        obs = AdminMiningObsLog.objects.all().order_by("-date")
+        days_90 = now() - dt.timedelta(days=90)
+        obs = AdminMiningObsLog.objects.filter(date__gte=days_90).order_by("-date")
         cache = {}
         data = []
         unknown_chars = {}

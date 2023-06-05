@@ -51,6 +51,11 @@ urlpatterns = [
         name="summary_month_json",
     ),
     path(
+        "admin_get_all_activity_json",
+        views.admin_get_all_activity_json,
+        name="admin_get_all_activity_json",
+    ),
+    path(
         "all_tax_credits/<int:user_pk>",
         views.all_tax_credits,
         name="all_tax_credits",

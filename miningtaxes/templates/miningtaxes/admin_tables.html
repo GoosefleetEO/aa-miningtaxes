@@ -358,7 +358,9 @@ function switchview(pane) {
 }
 
 function exportsysdata() {
-        exportToCsv("miningtaxes-allactivity.csv", tax_sys_data);
+$.get("{% url 'miningtaxes:admin_get_all_activity_json' %}", function(d) {
+        exportToCsv("miningtaxes-allactivity.csv", d.data);
+});
 }
 
 
@@ -433,7 +435,7 @@ function draw_corp_moons() {
 			},
 			{ data: 'last' },
 		    ],
-		    order: [[3, "desc"]]
+		    order: [[4, "desc"]]
 		});
 		unknown_table = $('#unknown').DataTable({
 		    columns: [
@@ -449,7 +451,7 @@ function draw_corp_moons() {
 			},
 			{ data: 'last' },
 		    ],
-		    order: [[3, "desc"]]
+		    order: [[4, "desc"]]
 		});
 		corpmoon_table = $('#corpmoon').DataTable({
 		    columns: [
@@ -611,12 +613,11 @@ x: "x",
 							  isk.load({columns: d['anal']['q']});
 
 
-tax_sys_data = d["csv"];
-$("#syscsv").click(exportsysdata);
 			 });
 			 }
 
 $(document).ready(function () {
+	$("#syscsv").click(exportsysdata);
 	$.getJSON("{% url 'miningtaxes:admin_tax_revenue_json' %}", function (d) {
 		var taxrevenue = bb.generate({
 			data: {
