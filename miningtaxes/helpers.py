@@ -72,6 +72,7 @@ class PriceGroups:
         4030: "Ores",
         460: "Ores",
         461: "Ores",
+        469: "Ores",
         4029: "Ores",
         462: "Ores",
         4513: "Ores",

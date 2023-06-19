@@ -48,10 +48,20 @@ class AdminCharacter(CharacterAbstract):
             token=token.valid_access_token(),
         ).results()
         for entry in entries:
-            structinfo = esi.client.Universe.get_universe_structures_structure_id(
-                structure_id=entry["observer_id"],
-                token=token.valid_access_token(),
-            ).results()
+            structinfo = None
+            try:
+                structinfo = esi.client.Universe.get_universe_structures_structure_id(
+                    structure_id=entry["observer_id"],
+                    token=token.valid_access_token(),
+                ).results()
+            except Exception as e:
+                logger.error(
+                    f"Unknown struct id. Most likely offlined/old struct, ignoring: {entry['observer_id']}"
+                )
+                logger.error(e)
+                pass
+            if structinfo is None:
+                continue
             structname = ""
             sys = None
             if type(structinfo) == dict:
