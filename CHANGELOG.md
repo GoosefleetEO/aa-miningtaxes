@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [v1.2.7] - 2023-06-25
+
+### Added
+- Attempts to find correct main account when payee character is not registered in plugin.
+- Dynamically lists the valid corps to pay taxes to in the FAQ
+- Added option to always use Refined Price of ores.
+
 ## [v1.1.22] - 2023-04-03
 
 ### Added

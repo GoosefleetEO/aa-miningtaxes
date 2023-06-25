@@ -7,7 +7,11 @@ from allianceauth.services.hooks import get_extension_logger
 from app_utils.logging import LoggerAddTag
 
 from .. import __title__
-from ..app_settings import MININGTAXES_REFINED_RATE, MININGTAXES_UNKNOWN_TAX_RATE
+from ..app_settings import (
+    MININGTAXES_ALWAYS_TAX_REFINED,
+    MININGTAXES_REFINED_RATE,
+    MININGTAXES_UNKNOWN_TAX_RATE,
+)
 from ..helpers import PriceGroups
 from .settings import Settings
 
@@ -96,6 +100,6 @@ class OrePrices(models.Model):
         if self.refined_price == 0.0:
             self.refined_price = self.raw_price
         self.taxed_price = self.refined_price
-        if self.raw_price > self.taxed_price:
+        if MININGTAXES_ALWAYS_TAX_REFINED and self.raw_price > self.taxed_price:
             self.taxed_price = self.raw_price
         self.save()

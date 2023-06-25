@@ -79,10 +79,10 @@ MININGTAXES_UNKNOWN_TAX_RATE | The tax rate when a new type of ore is encountere
 MININGTAXES_TAX_ONLY_CORP_MOONS | Only tax corporate moons using moon observers as opposed to all moons appearing in the personal mining ledgers. | True
 MININGTAXES_UPDATE_LEDGER_STALE | Minutes after which a character's mining ledger is considered stale | 240
 MININGTAXES_REFINED_RATE | Refining rate for ores. | 0.9063
+MININGTAXES_ALWAYS_TAX_REFINED | Always tax the refined rate instead of the raw ore price (if higher) | False
 MININGTAXES_PRICE_METHOD | By default Fuzzwork API will be used for pricing, if this is set to "Janice" then the Janice API will be used. | Fuzzwork
 MININGTAXES_PRICE_JANICE_API_KEY | The API key to access Janice API. |
 MININGTAXES_PRICE_SOURCE_ID | Station ID for fetching base prices. Supports IDs listed on [Fuzzworks API](https://market.fuzzwork.co.uk/api/). Does not work with Janice API!| 60003760
-MININGTAXES_TAX_CACHE_VIEW_TIMEOUT | Number of seconds before view cache expires. Default is 6 hours. | 21800
 
 
 ## Permissions

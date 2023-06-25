@@ -160,8 +160,12 @@ def ore_prices_json(request):
 @login_required
 @permission_required("miningtaxes.basic_access")
 def faq(request):
+    corps = []
+    for c in AdminCharacter.objects.all():
+        corps.append(c.eve_character.corporation_name)
+    corps = ",".join(corps)
     settings = Settings.load()
-    context = {"phrase": settings.phrase}
+    context = {"phrase": settings.phrase, "corps": corps}
     return render(request, "miningtaxes/faq.html", context)
 
 

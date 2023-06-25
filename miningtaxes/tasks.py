@@ -39,6 +39,25 @@ def calctaxes():
     return s.calctaxes()
 
 
+def get_user(cid):
+    try:
+        c = EveCharacter.objects.get(character_id=cid)
+        p = c.character_ownership.user.profile
+    except Exception:
+        return None
+    if p is None or p.main_character is None:
+        return None
+    found = None
+    for c in p.user.character_ownerships.all():
+        try:
+            payee = get_object_or_404(Character, eve_character_id=c.character.pk)
+        except Exception:
+            continue
+        found = payee
+        break
+    return found
+
+
 @shared_task(**{**TASK_DEFAULT_KWARGS, **{"bind": True}})
 def notify_taxes_due(self):
     user2taxes = calctaxes()
@@ -331,7 +350,10 @@ def add_tax_credits():
                     ).pk,
                 )
             except EveCharacter.DoesNotExist:
-                continue
+                payee = get_user(entry.taxed_id)
+                if payee is None:
+                    continue
+                pass
             except Http404:
                 continue
             payee.tax_credits.update_or_create(
