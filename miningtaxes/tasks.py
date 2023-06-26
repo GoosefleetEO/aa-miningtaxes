@@ -151,8 +151,8 @@ def get_bulk_prices(type_ids):
         output = {}
         for item in r:
             output[str(item["itemType"]["eid"])] = {
-                "buy": {"max": str(item["top5AveragePrices"]["buyPrice"])},
-                "sell": {"min": str(item["top5AveragePrices"]["sellPrice"])},
+                "buy": {"max": str(item["top5AveragePrices"]["buyPrice5DayMedian"])},
+                "sell": {"min": str(item["top5AveragePrices"]["sellPrice5DayMedian"])},
             }
         r = output
     else:
